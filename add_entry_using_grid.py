@@ -331,8 +331,6 @@ class Window(tk.Frame):
             print(input_minutes.get())
 
 
-
-
         file.close()
         new_wind.parent.minsize(width=400, height=200 + newline*20)
 
