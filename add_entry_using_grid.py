@@ -30,8 +30,7 @@ class Window(tk.Frame):
         menubar.add_cascade(label="File", menu=filemenu)
         filemenu.add_command(label="New" + "                 Ctrl+N", command=self.new_window)  # fd.open_file_dir
         filemenu.add_command(label="Open" + "               Ctrl+O", command=self.open_window)  # fd.open_file_dir
-        filemenu.add_command(label="Save" + "                 Ctrl+S", command=self.save_as)  # fd.save_current_proj
-        filemenu.add_command(label="Save as", command=self.save_as)  # fd.save_current_proj
+        filemenu.add_command(label="Save As" + "            Ctrl+S", command=self.save_as)  # fd.save_current_proj
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=self.quit)
 
@@ -216,10 +215,14 @@ class Window(tk.Frame):
                 pattern = re.compile(':')
                 result = pattern.search(split)
                 pace_dist = ""
+                time = ""
                 for j in range(result.span()[0]):
                     pace_dist += split[j]
+                for j in range(len(split)):
+                    if j > result.span()[0] + 1:
+                        time += split[j]
                 #print(pace_dist)
-
+                print(time)
             pace = tk.Label(new_wind.parent, text=split)
             pace.grid(column=2)
         try:
@@ -228,79 +231,110 @@ class Window(tk.Frame):
         except(ValueError):
             interval = "1mi"
 
+
+
         for i, l in enumerate(list):
             if type(l) == tk.Entry:
                 input_seconds = l
-                print("hello")
+                #print("hello")
             elif type(l) == tk.Label and i == 1:
                 seconds_label = l
-                print("yo")
+                #print("yo")
+            elif type(l) == tk.OptionMenu and i == 3:
+                interval_option = l
+            elif type(l) == tk.OptionMenu and i == 4:
+                dist_option = l
+                dist_option.children["menu"].invoke(2)
+            print(i, type(l))
+        list = new_wind.parent.grid_slaves()
 
-        input_option = tk.StringVar(new_wind.parent)
+        for i, l in enumerate(list):
+            if type(l) == tk.Entry and i == 3:
+                input_minutes = l
+
+
+
+        #input_option = tk.StringVar(new_wind.parent)
+        #input_option.set("300m")
+
+        
+
+        print(dist_option.children)
+        #print(input_option.get())
         report_option = tk.StringVar(new_wind.parent)
-        input_minutes = tk.Entry(new_wind.parent, width=10)
+        #input_minutes = tk.Entry(new_wind.parent, width=10)
         minutes_label = tk.Label(new_wind.parent, text="m")
 
-        for l in list:
-            if type(l) == tk.OptionMenu:
-                l.destroy()
 
-        input_option.set(pace_dist)
+        # def change_distance_dropdown(*args):
+        #     if any(input_option.get() in i for i in min_choices):
+        #         input_seconds.grid_forget()
+        #         seconds_label.grid_forget()
+        #         #input_minutes.grid(row=0, column=2)
+        #         #minutes_label.grid(row=0, column=3)
+        #         input_seconds.grid(row=0, column=4)
+        #         seconds_label.grid(row=0, column=5)
+        #     else:
+        #         input_minutes.grid_forget()
+        #         minutes_label.grid_forget()
+        #         input_seconds.grid(row=0, column=4)
+        #         seconds_label.grid(row=0, column=5)
+        #     clear_splits()
+        #
+        # def clear_splits(*args):
+        #     list = new_wind.parent.grid_slaves()
+        #     for j in range(len(list)):
+        #         if type(list[j]) == tk.Label:
+        #             pattern = re.compile(':')
+        #             result = pattern.search(list[j]["text"])
+        #             if result != None:
+        #                 list[j].destroy()
+        #
+        # input_option.trace("w", change_distance_dropdown)
+        # report_option.trace("w", clear_splits)
 
-        def change_distance_dropdown(*args):
-            if any(input_option.get() in i for i in min_choices):
-                input_seconds.grid_forget()
-                seconds_label.grid_forget()
-                input_minutes.grid(row=0, column=2)
-                minutes_label.grid(row=0, column=3)
-                input_seconds.grid(row=0, column=4)
-                seconds_label.grid(row=0, column=5)
-            else:
-                input_minutes.grid_forget()
-                minutes_label.grid_forget()
-                input_seconds.grid(row=0, column=4)
-                seconds_label.grid(row=0, column=5)
-            clear_splits()
+        # for l in list:
+        #     if type(l) == tk.OptionMenu:
+        #         l.destroy()
+        time_min = ""
+        time_sec = ""
+        # self.init_dropdown(new_wind, pace_dist, input_option, interval, report_option, input_choices, report_choices)
+        # TODO REWORK logic for init_dropdown
+        # currenty "Get Splits!" does not work properly when using init_dropdown because the get splits function is local to pacing mode
+        # either copy the code for the function and re-set the button's command to the copied local function or copy as class function
 
-        def clear_splits(*args):
-            list = new_wind.parent.grid_slaves()
-            for j in range(len(list)):
-                if type(list[j]) == tk.Label:
-                    pattern = re.compile(':')
-                    result = pattern.search(list[j]["text"])
-                    if result != None:
-                        list[j].destroy()
+        pattern = re.compile(':')
+        result = pattern.search(time)
+        # print(result)
+        if result is None:
+            try:
+                input_seconds.insert("insert", time)
+            except:
+                input_seconds.delete(0, tk.END)
+                input_seconds.insert("insert", "0")
+        else:
+            try:
+                for j in range(result.span()[0]):
+                    time_min += time[j]
+                for j in range(len(time)):
+                    if j > result.span()[0]:  # position of semicolon
+                        time_sec += time[j]
+                input_minutes.insert("insert", time_min)
+                input_seconds.insert("insert", time_sec)
+            except:
+                input_minutes.delete(0, tk.END)
+                input_minutes.insert("insert", "0")
+                input_seconds.delete(0, tk.END)
+                input_seconds.insert("insert", "0")
+            print(time_min)
+            print(time_sec)
+            print(input_minutes.get())
 
-        input_option.trace("w", change_distance_dropdown)
-        report_option.trace("w", clear_splits)
-        self.init_dropdown(new_wind, pace_dist, input_option, interval, report_option, input_choices, report_choices)
 
 
-
-        #TODO### need a way to change the selected distance without deleting the widget.
-        # Deleting the widget results in associated pace calc funcs not working#
-
-        #tk.OptionMenu()
-
-        #input_menu.grid(row=0, column=1)
-
-        # report_option = tk.StringVar(self.parent)
-        # report_option.set(interval)
-        # report_menu = tk.OptionMenu(self.parent, report_option, *report_choices)  # asterisk makes the choices vertical instead of horizontal
-        # list[1].destroy()
-        # report_menu.grid(row=1, column=1)
 
         file.close()
         new_wind.parent.minsize(width=400, height=200 + newline*20)
-
-
-    # def save():
-    #    if root.title == "Running Calculator":
-    # save_as()
-    # else:
-    # get file name
-    # write to the file without a dialog
-    #    fd.SaveFileDialog
 
     def new_window(self):
         wind = tk.Tk()
@@ -389,7 +423,6 @@ class Window(tk.Frame):
             pass  # no changes
 
         # HARD: Widget Modification
-
 
     # def new_window(*args):
     #     root_new = tk.Tk()
@@ -699,52 +732,6 @@ class Window(tk.Frame):
         conversion = tk.Button(self.parent, text="Convert", fg="black", command=convert)
         conversion.grid(row=2, column=2)
 
-    def init_dropdown(self, new_wind, input_str, input_option, report_str, report_option, input_choices, report_choices):
-        input_option.set(input_str)
-        input_menu = tk.OptionMenu(new_wind.parent, input_option, *input_choices)
-        input_menu.grid(row=0, column=1)
-
-        report_option.set(report_str)
-        report_menu = tk.OptionMenu(new_wind.parent, report_option, *report_choices)  # asterisk makes the choices vertical instead of horizontal
-        report_menu.grid(row=1, column=1)
-
-
-#TODO rework change_distance_dropdown so it works in any window
-
-    # def change_distance_dropdown(self, new_wind, input_option, min_choices, input_seconds,
-    #                              seconds_label, input_minutes, minutes_label):
-    #
-    #     if any(input_option.get() in i for i in min_choices):
-    #         input_seconds.grid_forget()
-    #         seconds_label.grid_forget()
-    #         input_minutes.grid(row=0, column=2)
-    #         minutes_label.grid(row=0, column=3)
-    #         input_seconds.grid(row=0, column=4)
-    #         seconds_label.grid(row=0, column=5)
-    #     else:
-    #         input_minutes.grid_forget()
-    #         minutes_label.grid_forget()
-    #         input_seconds.grid(row=0, column=4)
-    #         seconds_label.grid(row=0, column=5)
-    #     self.clear_splits(new_wind)
-    #
-    # #TODO rework clear_splits so it works in any window
-    #
-    # def clear_splits(self, new_wind):
-    #         list = new_wind.parent.grid_slaves()
-    #         for j in range(len(list)):
-    #             if type(list[j]) == tk.Label:
-    #                 pattern = re.compile(':')
-    #                 result = pattern.search(list[j]["text"])
-    #                 if result != None:
-    #                     list[j].destroy()
-
-    #TODO traceback so it works in any window
-
-    # def traceback(self, input_option, report_option):
-    #     input_option.trace("w", self.change_distance_dropdown)
-    #     report_option.trace("w", self.clear_splits)
-
     def mode_pacing(self):
         self.del_all()
         self.parent.minsize(width=400, height=200)
@@ -918,42 +905,57 @@ class Window(tk.Frame):
         pace = tk.Button(self.parent, text="Get Splits!", fg="black", command=pacing)
         pace.grid(row=2, column=2)
 
+    def init_dropdown(self, new_wind, input_str, input_option, report_str, report_option, input_choices, report_choices):
+        input_option.set(input_str)
+        input_menu = tk.OptionMenu(new_wind.parent, input_option, *input_choices)
+        input_menu.grid(row=0, column=1)
+
+        report_option.set(report_str)
+        report_menu = tk.OptionMenu(new_wind.parent, report_option, *report_choices)  # asterisk makes the choices vertical instead of horizontal
+        report_menu.grid(row=1, column=1)
+
+#TODO rework change_distance_dropdown so it works in any window
+
+    # def change_distance_dropdown(self, new_wind, input_option, min_choices, input_seconds,
+    #                              seconds_label, input_minutes, minutes_label):
+    #
+    #     if any(input_option.get() in i for i in min_choices):
+    #         input_seconds.grid_forget()
+    #         seconds_label.grid_forget()
+    #         input_minutes.grid(row=0, column=2)
+    #         minutes_label.grid(row=0, column=3)
+    #         input_seconds.grid(row=0, column=4)
+    #         seconds_label.grid(row=0, column=5)
+    #     else:
+    #         input_minutes.grid_forget()
+    #         minutes_label.grid_forget()
+    #         input_seconds.grid(row=0, column=4)
+    #         seconds_label.grid(row=0, column=5)
+    #     self.clear_splits(new_wind)
+    #
+    # #TODO rework clear_splits so it works in any window
+    #
+    # def clear_splits(self, new_wind):
+    #         list = new_wind.parent.grid_slaves()
+    #         for j in range(len(list)):
+    #             if type(list[j]) == tk.Label:
+    #                 pattern = re.compile(':')
+    #                 result = pattern.search(list[j]["text"])
+    #                 if result != None:
+    #                     list[j].destroy()
+
+    #TODO traceback so it works in any window
+
+    # def traceback(self, input_option, report_option):
+    #     input_option.trace("w", self.change_distance_dropdown)
+    #     report_option.trace("w", self.clear_splits)
+
+
+
 root = tk.Tk()
 w1=Window(root)
 w1.mainloop()
-# mode_split()
-#
-# menubar = tk.Menu(root)
-#
-# # create a pulldown menu, and add it to the menu bar
-# filemenu = tk.Menu(menubar, tearoff=0)
-# menubar.add_cascade(label="File", menu=filemenu)
-# filemenu.add_command(label="New" + "                 Ctrl+N", command=new_window) #fd.open_file_dir
-# filemenu.add_command(label="Open" + "               Ctrl+O", command=open_split) #fd.open_file_dir
-# filemenu.add_command(label="Save" + "                 Ctrl+S", command=save_as) #fd.save_current_proj
-# filemenu.add_command(label="Save as", command=save_as) #fd.save_current_proj
-# filemenu.add_separator()
-# filemenu.add_command(label="Exit", command=quit)
-#
-# optionsmenu=tk.Menu(menubar, tearoff=0)
-# menubar.add_cascade(label="Modes", menu=optionsmenu)
-# optionsmenu.add_command(label="Split", command=mode_split)
-# optionsmenu.add_command(label="Convert", command=mode_convert)
-# optionsmenu.add_command(label="Pacing", command=mode_pacing)
-#
-# aboutmenu=tk.Menu(menubar, tearoff=0)
-# menubar.add_cascade(label="About", menu=aboutmenu)
-# #aboutmenu.add_command(label="About the Creator",)
-#
-# root.config(menu=menubar)
-# root.bind("<Key>", event_root)
 
-# def event_newfile():
-#     new_file()
-#     print('hello')
-# root.bind("<Control-c>", event_newfile)
-
-#root.mainloop()
 
 #TODO - HIGH TO LOW PRIORITY
 
