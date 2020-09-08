@@ -171,9 +171,8 @@ class Window(tk.Frame):
 
     def open_pace(self, file_title, file, name):
         #TODO pretty close just a few more things
-        # * a method to determine the reporting interval
-        # * setting the reporting interval accordingly
-        # * settings the distance according to the name of the last split#
+        # * a method to empty text boxes when switching menus
+
         input_choices = ["200m", "400m", "800m", "1mi", "2mi", "3mi", "5k", "4mi", "5mi"]
         report_choices = input_choices[:4]
         min_choices = input_choices[2:]
@@ -231,8 +230,6 @@ class Window(tk.Frame):
         except(ValueError):
             interval = "1mi"
 
-
-
         for i, l in enumerate(list):
             if type(l) == tk.Entry:
                 input_seconds = l
@@ -245,6 +242,7 @@ class Window(tk.Frame):
             elif type(l) == tk.OptionMenu and i == 4:
                 dist_option = l
                 dist_option.children["menu"].invoke(2)
+                #TODO make the invoke method not hard coded
             print(i, type(l))
         list = new_wind.parent.grid_slaves()
 
@@ -253,11 +251,6 @@ class Window(tk.Frame):
                 input_minutes = l
 
 
-
-        #input_option = tk.StringVar(new_wind.parent)
-        #input_option.set("300m")
-
-        
 
         print(dist_option.children)
         #print(input_option.get())
@@ -290,18 +283,14 @@ class Window(tk.Frame):
         #             if result != None:
         #                 list[j].destroy()
         #
-        # input_option.trace("w", change_distance_dropdown)
-        # report_option.trace("w", clear_splits)
+        # dist_option.trace("w", change_distance_dropdown)
+        # interval_option.trace("w", clear_splits)
 
         # for l in list:
         #     if type(l) == tk.OptionMenu:
         #         l.destroy()
         time_min = ""
         time_sec = ""
-        # self.init_dropdown(new_wind, pace_dist, input_option, interval, report_option, input_choices, report_choices)
-        # TODO REWORK logic for init_dropdown
-        # currenty "Get Splits!" does not work properly when using init_dropdown because the get splits function is local to pacing mode
-        # either copy the code for the function and re-set the button's command to the copied local function or copy as class function
 
         pattern = re.compile(':')
         result = pattern.search(time)
