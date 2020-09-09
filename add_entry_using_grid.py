@@ -644,10 +644,11 @@ class Window(tk.Frame):
                         output_minutes.delete(0, tk.END)
                         output_seconds.delete(0, tk.END)
                         tot_sec = float(input_seconds.get()) + float(input_minutes.get()) * 60
-                        calc_secs = 1 / (float(entry_input.get()) * 1.609) * tot_sec
+                        calc_secs = 1000 / (float(entry_input.get()) * 1609) * tot_sec
                         calc_mins = int(calc_secs / 60)
-                        calc_secs %= 60
+                        calc_secs = calc_secs % 60
                         calc_secs = round(calc_secs, 2)
+
 
                         output_minutes.insert("insert", calc_mins)
                         output_seconds.insert("insert", calc_secs)
@@ -655,10 +656,10 @@ class Window(tk.Frame):
                         output_minutes.delete(0, tk.END)
                         output_seconds.delete(0, tk.END)
                         tot_sec = float(input_seconds.get()) + float(input_minutes.get()) * 60
-                        calc = 200 / (float(entry_input.get()) * 1609) * tot_sec
-                        calc = round(calc, 2)
+                        calc_secs = 200 / (float(entry_input.get()) * 1609) * tot_sec
+                        calc_secs = round(calc_secs, 2)
 
-                        output_seconds.insert("insert", calc)
+                        output_seconds.insert("insert", calc_secs)
             except ValueError:
                 entry_input.delete(0, tk.END)
                 input_seconds.delete(0, tk.END)
@@ -866,71 +867,7 @@ root = tk.Tk()
 w1=Window(root)
 w1.mainloop()
 
-
 #TODO - HIGH TO LOW PRIORITY
-
-#DONE - Calculate average pace
-#       Parse through strings that have ':' to separate between hours, minutes, and seconds
-
-#DONE - Modify add_entry() to add another entry to the second to last index
-#       switching to grid_slaves instead of pack_slaves might make this easier
-
-#DONE - Save average pace in file, will be easier if indices of non-textbox grid/pack slaves are nice
-
-#DONE (didn't ignore, actually read. wasn't too hard) - Ignore average pace in file when opening a .txt file that was saved
-# append '#' to beginning of string, search for '#', and then don't populate the program with that dat
-# program should calculate average pace IF there is not a empty Entrybox
-# it should do this in real-time. If I enter '6' and then '5', it should have done calculations for '6' and '65'
-
-#DONE - restrict entry of non-numerical chars (except : and ./,)
-# GET USER INPUT
-# IF NOT NUMBER, COLON, PERIOD, OR COMMA (for my european friends <3)
-#   DO NOT ACCEPT ENTRY
-#   DON'T ALLOW MORE THAN 1 COLON, PERIOD OR COMMA
-
-
-#DONE - SCROLLBAR - Implement scrollbar widget so splits don't disappear when you
-#                    enter beyond the window boundaries
-#DONE - Expand window as new widgets are created
-
-#DONE - MODES
-#DONE split mode, conversion mode (convert weird distances to standard ones, include dropdown lists)
-#DONE pacing mode (enter in distance and select interval to report. ex: 1600m in 4:24 report every 200m. 200m: 33, 400m: 66, 600m: 1:39, 800m: 2:12 etc.
-
-#DONE - dropdown menus to select distance
-#DONE - if you're in a Entry widget and press a mapped key like + or - it will:
-#   read that key press and write it into the widget. I don't want that to happen for mapped keys like + and -
-#DONE - saving needs to be reworked to work for all modes, not just split
-# BIG PICTURE
-#   *Need a way to determine what mode the user is currently in
-#   *IF count(tk.Button) == 3
-#       GOTO SPLIT_MODE SECTION
-#   #ELIF count(tk.Entry) > 2 //WON'T THINK IT'S SPLIT_MODE SINCE THAT CASE WAS ALREADY CHECKED
-#       GOTO CONVERT_MODE SECTION
-#   #ELSE
-#       GOTO PACING_MODE SECTION#
-# SPLIT MODE
-#   IMPLEMENTED
-# CONVERT MODE
-#   *get values from entry boxes
-#   *get values from dropdowns
-#   *write to file accordingly, add colon for MM:SS
-# PACING MODE
-#   *get the strings directly from the tk.Label's that have colons#
-#   *write to file
-#TODO - Save button
-#   * IF LOADED_FILE
-#       *WRITE_TO_FILE
-#   * ELSE
-#       *RUN SAVE_AS COMMAND
-#DONE - "New" menu item
-#   * open a new window
-#   * don't delete stuff out of current window. then there's no need to check for modifications
-#DONE - "Open" menu item
-#   *open a new window.
-#   *Keep whatever is in previous window.
-#   *Don't need to check for modifications this way#
-#   *Add metadata to the file so it opens in the right mode
 
 #DO NOT IMPACT FUNCTIONALITY OF PROGRAM
 #VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
