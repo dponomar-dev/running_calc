@@ -121,10 +121,12 @@ class Window(tk.Frame):
         for i, l in enumerate(reversed(list)):
             if type(l) == tk.Entry:
                 entry_list += [i]
-                print(list[1].get())
+                #print(list[1].get())
                 print(entry_list)
 
         file.write("CONVERT MODE\n")
+        output_mins = ""
+        output_secs = ""
         for i, l in enumerate(reversed(list)):
             print(i, type(l))
             if type(l) == tk.Entry:
@@ -133,29 +135,141 @@ class Window(tk.Frame):
                     file.write(l.get())
                     file.write(" mi in\n")
                 elif i == 4:
-                    file.write(l.get())
-                    file.write(":")
+                    file.write(l.get() + ":")
                 elif i == 6:
                     if float(l.get()) < 10:
                         file.write("0" + l.get())
                     else:
                         file.write(l.get())
-                    file.write("\n")
                 elif i == 8:
-                    file.write("Equivalent to:\n")
-                    # if entry_cnt == 4:
-                    #     file.write("200m in\n")
-                    # else:
-                    #     file.write("1km in\n")
-
-                    #TODO need to have method for getting output minutes and having it write nicely =)
-                    file.write(l.get())
-                    file.write("s\n")
+                    file.write("\nEquivalent to:\n")
+                    output_secs = l.get()
+                elif i == 12:
+                    output_mins = l.get()
+        if len(list) > 12: #has a minutes option
+            file.write("1km in\n")
+            file.write(output_mins)
+            file.write(":")
+            if float(output_secs) < 10:
+                file.write("0" + output_secs)
+            else:
+                file.write(output_secs)
+            file.write("\n")
+        else:
+            file.write("200m in\n")
+            file.write(output_secs)
+            file.write("s\n")
         file.close()
 
     def open_convert(self, file_title, file, name):
-        pass
+        dist_choices = ["200m", "1km"]
+        file = open(name, "r")
+        f = file.read()
+        newline = f.count('\n') - 1
+        file.close()
 
+        new_wind = self.new_window()
+        new_wind.parent.title(file_title)
+        new_wind.mode_convert()
+        list = new_wind.parent.grid_slaves()
+        for i, l in enumerate(reversed(list)):
+            if i == 10 and type(l) == tk.OptionMenu:
+                interval_option = l
+
+        file = open(name, "r")
+        file.readline()
+        for j in range(newline):
+            if j == 0:
+                input_dist = file.readline()
+            elif j == 1:
+                input_time = file.readline()[:-1]
+            elif j == 2:
+                file.readline()
+            elif j == 3:
+                convert_dist = file.readline()
+            elif j == 4:
+                convert_time = file.readline()[:-1]
+        pattern = re.compile(':')
+        result = pattern.search(input_time)
+        input_min = ""
+        input_sec = ""
+
+        for j in range(result.span()[0]):
+            input_min += input_time[j]
+        for j in range(len(input_time)):
+            if j > result.span()[0]:
+                input_sec += input_time[j]
+
+        pattern = re.compile(':')
+        result = pattern.search(convert_time)
+        output_min = ""
+        output_sec = ""
+
+        if result is not None:
+            for j in range(result.span()[0]):
+                output_min += convert_time[j]
+            for j in range(len(convert_time)):
+                if j > result.span()[0]:
+                    output_sec += convert_time[j]
+        else:
+            output_sec = re.findall("\d+\.\d+", convert_time)
+            if len(output_sec) == 0:
+                output_sec = re.findall(r'[0-9]+', convert_time)
+
+        print(output_min)
+        print(output_sec)
+
+        if convert_dist[3] == "m":
+            convert_dist = "200m"
+        elif convert_dist[1] == "k":
+            convert_dist = "1km"
+
+        for k, dist in enumerate(dist_choices):
+            if dist == convert_dist:
+                interval_option.children["menu"].invoke(k)
+        list = new_wind.parent.grid_slaves()
+
+        for i, l in enumerate(reversed(list)):
+            print(i, type(l))
+            if type(l) == tk.Entry:
+                print(i, l.get())
+                if i == 2:
+                    dist = re.findall("\d+\.\d+", input_dist)
+                    if len(dist) == 0:
+                        try:
+                            lazy_dist = re.findall(".\d+", input_dist)
+                            dist = "0" + str(lazy_dist[0])
+                        except (IndexError):
+                            dist = re.findall(r'[0-9]+', input_dist)
+                    l.delete(0, tk.END)
+                    l.insert(0, dist)
+                elif i == 4:
+                    l.delete(0, tk.END)
+                    l.insert(0, input_min)
+                elif i == 6:
+                    l.delete(0, tk.END)
+                    l.insert(0, input_sec)
+                elif i == 8:
+                    l.delete(0, tk.END)
+                    l.insert(0, output_sec)
+                elif i == 12:
+                    l.delete(0, tk.END)
+                    l.insert(0, output_min)
+        # if len(list) > 12: #has a minutes option
+        #     file.write("1km in\n")
+        #     file.write(output_mins)
+        #     file.write(":")
+        #     if int(output_secs) < 10:
+        #         file.write("0")
+        #         file.write(output_secs)
+        #     else:
+        #         file.write(output_secs)
+        #     file.write("\n")
+        # else:
+        #     file.write("200m in\n")
+        #     file.write(output_secs)
+        #     file.write("s\n")
+        file.close()
     def read_pace(self, file_name):
         list = self.parent.grid_slaves()
         file = open(file_name, "w")
