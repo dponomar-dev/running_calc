@@ -204,7 +204,7 @@ class Window(tk.Frame):
         result = pattern.search(convert_time)
         output_min = ""
         output_sec = ""
-        print("hi")
+
         if result is not None:
             for j in range(result.span()[0]):
                 output_min += convert_time[j]
