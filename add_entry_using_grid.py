@@ -19,12 +19,8 @@ class Window(tk.Frame):
         self.parent.minsize(width=400, height=200)
         self.parent.maxsize(width=400, height=200)
         self.parent.title('Running Calculator')
-        image = tk.PhotoImage(file="Milkbot.png")
-        #self.parent.iconphoto(True, image)
 
-        self.mode_convert()
         menubar = tk.Menu(self.parent)
-
         # create a pulldown menu, and add it to the menu bar
         filemenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=filemenu)
@@ -36,9 +32,9 @@ class Window(tk.Frame):
 
         optionsmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Modes", menu=optionsmenu)
-        optionsmenu.add_command(label="Split", command=self.mode_split)
-        optionsmenu.add_command(label="Convert", command=self.mode_convert)
-        optionsmenu.add_command(label="Pacing", command=self.mode_pacing)
+        optionsmenu.add_radiobutton(label="Split", command=self.mode_split)
+        optionsmenu.add_radiobutton(label="Convert", command=self.mode_convert)
+        optionsmenu.add_radiobutton(label="Pacing", command=self.mode_pacing)
 
         aboutmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="About", menu=aboutmenu)
@@ -46,6 +42,13 @@ class Window(tk.Frame):
 
         self.parent.config(menu=menubar)
         self.bind("<Key>", self.event_root)
+        optionsmenu.invoke(1)
+
+    def del_all(self):
+        list = self.parent.grid_slaves()
+        for l in list:
+            list[0].destroy()
+            list = self.parent.grid_slaves()
 
     def del_avg(self):
         list = self.parent.grid_slaves()
@@ -74,6 +77,71 @@ class Window(tk.Frame):
             self.parent.minsize(width=400, height=200 + (20 * (len(list) - (num_buttons + 7))))
         else:
             self.parent.minsize(width=400, height=200)
+
+    def calc_avg(self):
+        list = self.parent.grid_slaves()
+        if (type(list[0]) == tk.Label):
+            list[0].destroy()
+            if len(list) > (num_buttons + 5):
+                self.parent.minsize(width=400, height=self.parent.winfo_height() - 20)
+            return 0
+        avg_sec = 0.0
+        avg_min = 0
+
+        for l in list[:len(list) - num_buttons]:
+            pattern = re.compile(':')
+            result = pattern.search(l.get())
+            # print(result)
+            if result == None:
+                try:
+                    avg_sec += float(l.get())
+                except:
+                    l.delete(0, tk.END)
+                    l.insert("insert", "0")
+                    avg_sec += float(l.get())
+            else:
+                try:
+                    min = ""
+                    sec = ""
+                    for j in range(result.span()[0]):
+                        min += l.get()[j]
+                    for j in range(len(l.get())):
+                        if j > result.span()[0]:  # position of semicolon
+                            sec += l.get()[j]
+                    min = int(min)
+                    sec = float(sec)
+                    avg_min += min  # indices 0 to result.span()[0] (exclusive) are MINUTES indices
+                    avg_sec += sec
+                except:
+                    l.delete(0, tk.END)
+                    l.insert("insert", "0")
+                    avg_sec += float(
+                        l.get())  # indices result.span()[0] + 1 to l.get()[-1] (last index) are SECONDS indices
+                    # print(result.span()[0]) #returns position of ':'
+        if (avg_min > 1):
+            avg_min = int(avg_min / (len(list) - num_buttons))
+
+        avg_min = str(avg_min)
+        avg_sec /= (len(list) - num_buttons)
+        avg_sec = round(avg_sec, 2)  # truncates to two decimal places
+
+        if avg_sec < 10:
+            avg_sec = "0" + str(avg_sec)
+        else:
+            avg_sec = str(avg_sec)
+
+        if avg_min == "0":
+            title = "Average Pace: " + avg_sec
+            avg_pace = tk.Label(self.parent, text=title)
+            avg_pace.grid()
+        else:
+            avg_min = avg_min + ":" + avg_sec
+            title = "Average Pace: " + avg_min
+            avg_pace = tk.Label(self.parent, text=title)
+            avg_pace.grid()
+        if len(list) > (num_buttons + 5):
+            self.parent.minsize(width=400, height=self.parent.winfo_height() + 20)
+        return title
 
     def read_split(self, file_name):
         list = self.parent.grid_slaves()
@@ -113,6 +181,23 @@ class Window(tk.Frame):
                 avg_pace = tk.Label(new_wind.parent, text=split)
                 avg_pace.grid()
         file.close()
+
+    def mode_split(self):
+        self.del_all()
+        self.parent.minsize(width=400, height=200)
+        self.parent.maxsize(width=400, height=200)
+
+        add = tk.Button(self.parent, text="Add", fg="black", command=self.add_split)
+        add.bind("<Return>", self.event_add_split)
+        add.grid(padx=180)
+
+        delete = tk.Button(self.parent, text="Delete", fg="black", command=self.del_split)
+        delete.bind("<Return>", self.event_del_split)
+        delete.grid()
+
+        calc = tk.Button(self.parent, text="Calculate Average", fg="black", command=self.calc_avg)
+        calc.bind("<Return>", self.event_calc_avg)
+        calc.grid()
 
     def read_convert(self, file_name):
         list = self.parent.grid_slaves()
@@ -216,8 +301,8 @@ class Window(tk.Frame):
             if len(output_sec) == 0:
                 output_sec = re.findall(r'[0-9]+', convert_time)
 
-        print(output_min)
-        print(output_sec)
+        #print(output_min)
+        #print(output_sec)
 
         if convert_dist[3] == "m":
             convert_dist = "200m"
@@ -255,446 +340,7 @@ class Window(tk.Frame):
                 elif i == 12:
                     l.delete(0, tk.END)
                     l.insert(0, output_min)
-        # if len(list) > 12: #has a minutes option
-        #     file.write("1km in\n")
-        #     file.write(output_mins)
-        #     file.write(":")
-        #     if int(output_secs) < 10:
-        #         file.write("0")
-        #         file.write(output_secs)
-        #     else:
-        #         file.write(output_secs)
-        #     file.write("\n")
-        # else:
-        #     file.write("200m in\n")
-        #     file.write(output_secs)
-        #     file.write("s\n")
         file.close()
-    def read_pace(self, file_name):
-        list = self.parent.grid_slaves()
-        file = open(file_name, "w")
-        file.write("PACE MODE\n")
-        for i, l in enumerate(reversed(list)):
-            if type(l) == tk.Label and i > 8:
-                print(i, l["text"])
-                file.write(l["text"])
-                file.write("\n")
-            else:
-                print(i, type(l))
-        file.close()
-
-    def open_pace(self, file_title, name):
-        input_choices = ["200m", "400m", "800m", "1mi", "2mi", "3mi", "5k", "4mi", "5mi"]
-        report_choices = input_choices[:4]
-        min_choices = input_choices[2:]
-        file = open(name, "r")
-        f = file.read()
-        newline = f.count('\n') - 1
-        file.close()
-
-        new_wind = self.new_window()
-        new_wind.parent.title(file_title)
-        new_wind.mode_pacing()
-        list = new_wind.parent.grid_slaves()
-
-        file = open(name, "r")
-        file.readline()
-        pace_dist = ""
-        time = ""
-        for n in range(newline):
-            split = file.readline()
-            split = split[:-1]  # removes the newline character
-            if n == 0:
-                if split[3] == "m":
-                    first_char_line_1 = split[0:3]
-                else:
-                    first_char_line_1 = split[0]
-
-                #print(first_char_line_1)
-            elif n == 1:
-                if split[3] == "m":
-                    first_char_line_2 = split[0:3]
-                elif split[1] == "m":
-                    first_char_line_2 = split[0]
-                else:
-                    first_char_line_2 = split[0:4]
-
-                #print(first_char_line_2)
-            if n == newline - 1:
-                pattern = re.compile(':')
-                result = pattern.search(split)
-
-                for j in range(result.span()[0]):
-                    pace_dist += split[j]
-                for j in range(len(split)):
-                    if j > result.span()[0] + 1:
-                        time += split[j]
-                #print(pace_dist)
-                #print(time)
-            pace = tk.Label(new_wind.parent, text=split)
-            pace.grid(column=2)
-        try:
-            if int(first_char_line_2) - int(first_char_line_1) > 1:
-                interval = str((int(first_char_line_2) - int(first_char_line_1))) + "m"
-        except(ValueError):
-            interval = "1mi"
-        #print(pace_dist)
-        for i, l in enumerate(list):
-            if type(l) == tk.Entry:
-                input_seconds = l
-                #print("hello")
-            elif type(l) == tk.Label and i == 1:
-                seconds_label = l
-                #print("yo")
-            elif type(l) == tk.OptionMenu and i == 3:
-                interval_option = l
-                for k, dist in enumerate(report_choices):
-                    if dist == interval:
-                        interval_option.children["menu"].invoke(k)
-                        #print(k)
-            elif type(l) == tk.OptionMenu and i == 4:
-                dist_option = l
-                for k, dist in enumerate(input_choices):
-                    if dist == pace_dist:
-                        dist_option.children["menu"].invoke(k)
-                        #print(k)
-                #TODO make the invoke method not hard coded
-            #print(i, type(l))
-        list = new_wind.parent.grid_slaves()
-
-        for i, l in enumerate(list):
-            if type(l) == tk.Entry and i == 3:
-                input_minutes = l
-
-        time_min = ""
-        time_sec = ""
-        pattern = re.compile(':')
-        result = pattern.search(time)
-        # print(result)
-        if result is None:
-            try:
-                input_seconds.insert("insert", time)
-            except:
-                input_seconds.delete(0, tk.END)
-                input_seconds.insert("insert", "0")
-        else:
-            try:
-                for j in range(result.span()[0]):
-                    time_min += time[j]
-                for j in range(len(time)):
-                    if j > result.span()[0]:  # position of semicolon
-                        time_sec += time[j]
-                input_minutes.insert("insert", time_min)
-                input_seconds.insert("insert", time_sec)
-            except:
-                input_minutes.delete(0, tk.END)
-                input_minutes.insert("insert", "0")
-                input_seconds.delete(0, tk.END)
-                input_seconds.insert("insert", "0")
-            #print(time_min)
-            #print(time_sec)
-            #print(input_minutes.get())
-        file.close()
-        new_wind.parent.minsize(width=400, height=200 + newline*20)
-
-    def new_window(self):
-        wind = tk.Tk()
-
-        created_wind = Window(wind)
-        wind.focus_force()
-        return created_wind
-
-    def open_window(self):
-        list = self.parent.grid_slaves()
-        button_cnt = 0
-        entry_cnt = 0
-        for l in list:
-            if type(l) == tk.Button:
-                button_cnt += 1
-            elif type(l) == tk.Entry:
-                entry_cnt += 1
-
-        files = [('Text Document', '*.txt'), ('All Files', '*.*')]
-        name = fd.askopenfilename(title="Open", filetypes=files)
-        print(name)
-        file = open(name, "r")
-        primary_title = " - Running Calculator"
-        file_title = os.path.basename(name)
-        file_title += primary_title
-        f = file.readline()
-
-        if str(f) == "SPLIT MODE\n":
-            self.open_split(file_title, file, name)
-            print("1")
-        elif str(f) == "CONVERT MODE\n":
-            self.open_convert(file_title, file, name)
-            print("2")
-        elif str(f) == "PACE MODE\n":
-            self.open_pace(file_title, name)
-
-    def save_as(self, *args):
-        files = [('Text Document', '*.txt'),
-                 ('All Files', '*.*')]
-        saveas = fd.asksaveasfile(filetypes=files, defaultextension=files)
-        print(saveas.name)
-        list = self.parent.grid_slaves()
-        button_cnt = 0
-        entry_cnt = 0
-        for l in list:
-            if type(l) == tk.Button:
-                button_cnt += 1
-            elif type(l) == tk.Entry:
-                entry_cnt += 1
-
-        if button_cnt == 3:
-            self.read_split(saveas.name)
-        elif entry_cnt > 2:
-            self.read_convert(saveas.name)
-        else:
-            self.read_pace(saveas.name)
-
-    def check_changes(self):
-        # if anything has been changed since the file was last saved, detect a change
-        # append an asterisk to the front of the window title
-
-        # start with easily detectable changes -> harder
-        name = ""
-
-        # something with re.compile to find the spot in root.title before "-"
-
-        # EASY: NUMBER OF WIDGETS MISMATCH
-        file = open(name, "r")
-
-        f = file.read()
-        newline = f.count('\n')
-        file.close()
-
-        file = open(name, "r")
-        non_button_widgets = 0
-        for n in range(newline):
-            non_button_widgets += 1
-
-        if self.grid_slaves != non_button_widgets:
-            self.title = "*" + self.title
-
-        elif self.grid_slaves == non_button_widgets:
-            pass
-        else:
-            pass  # no changes
-
-        # HARD: Widget Modification
-
-    # def new_window(*args):
-    #     root_new = tk.Tk()
-    #
-    #     root_new.geometry('400x200')
-    #
-    #     root_new['bg'] = "#39cced"
-    #     root_new.minsize(width=400, height=200)
-    #     root_new.maxsize(width=400, height=200)
-    #     root_new.title('Running Calculator')
-    #     # image = tk.PhotoImage(file="Milkbot.png")
-    #     # root.iconphoto(False, image)
-    #     self.mode_split(root_new)
-    #
-    #     menubar = tk.Menu(root_new)
-    #
-    #     # create a pulldown menu, and add it to the menu bar
-    #     filemenu = tk.Menu(menubar, tearoff=0)
-    #     menubar.add_cascade(label="File", menu=filemenu)
-    #     filemenu.add_command(label="New" + "                 Ctrl+N", command=new_window)  # fd.open_file_dir
-    #     filemenu.add_command(label="Open" + "               Ctrl+O", command=open_split)  # fd.open_file_dir
-    #     filemenu.add_command(label="Save" + "                 Ctrl+S", command=save_as)  # fd.save_current_proj
-    #     filemenu.add_command(label="Save as", command=save_as)  # fd.save_current_proj
-    #     filemenu.add_separator()
-    #     filemenu.add_command(label="Exit", command=quit)
-    #
-    #     optionsmenu = tk.Menu(menubar, tearoff=0)
-    #     menubar.add_cascade(label="Modes", menu=optionsmenu)
-    #     optionsmenu.add_command(label="Split", command=mode_split)
-    #     optionsmenu.add_command(label="Convert", command=mode_convert)
-    #     optionsmenu.add_command(label="Pacing", command=mode_pacing)
-    #
-    #     aboutmenu = tk.Menu(menubar, tearoff=0)
-    #     menubar.add_cascade(label="About", menu=aboutmenu)
-    #     # aboutmenu.add_command(label="About the Creator",)
-    #
-    #     root_new.config(menu=menubar)
-    #     root_new.bind("<Key>", event_root)
-    #
-    #     # def event_newfile():
-    #     #     new_file()
-    #     #     print('hello')
-    #     # root.bind("<Control-c>", event_newfile)
-    #
-    #     root_new.mainloop()
-
-    def new_file(self):
-        list = self.grid_slaves()
-        result = ""
-
-        if self.title != "Running Calculator":  # check for changes have been made to entry by comparing to file
-            # get file name from current path, can just look at the title
-
-            # open file name
-
-            # detecting changes to a saved file should be its own function
-
-            file_name = self.title
-
-        # print("Not in FOR")
-        for l in list:
-            print("Not in IF")
-            print(type(l))
-            if type(l) == tk.Entry:
-                result += l.get()
-                print(result)
-            if result == "":
-                self.del_split()
-            elif self.title == "Running Calculator":  # not a loaded file
-                # ask to save file file_dialog
-                self.save_as()
-
-                # if you get numerical values back, ask to save file as
-                # if you have loaded a file and there have been changes to it, ask to save to file
-
-    def quit(self):
-        if mb.askyesno(title="Quit", message="Really quit?"):
-            self.parent.destroy()
-
-    def calc_avg(self):
-        list = self.parent.grid_slaves()
-        if (type(list[0]) == tk.Label):
-            list[0].destroy()
-            if len(list) > (num_buttons + 5):
-                self.parent.minsize(width=400, height=self.parent.winfo_height() - 20)
-            return 0
-        avg_sec = 0.0
-        avg_min = 0
-
-        for l in list[:len(list) - num_buttons]:
-            pattern = re.compile(':')
-            result = pattern.search(l.get())
-            # print(result)
-            if result == None:
-                try:
-                    avg_sec += float(l.get())
-                except:
-                    l.delete(0, tk.END)
-                    l.insert("insert", "0")
-                    avg_sec += float(l.get())
-            else:
-                try:
-                    min = ""
-                    sec = ""
-                    for j in range(result.span()[0]):
-                        min += l.get()[j]
-                    for j in range(len(l.get())):
-                        if j > result.span()[0]:  # position of semicolon
-                            sec += l.get()[j]
-                    min = int(min)
-                    sec = float(sec)
-                    avg_min += min  # indices 0 to result.span()[0] (exclusive) are MINUTES indices
-                    avg_sec += sec
-                except:
-                    l.delete(0, tk.END)
-                    l.insert("insert", "0")
-                    avg_sec += float(
-                        l.get())  # indices result.span()[0] + 1 to l.get()[-1] (last index) are SECONDS indices
-                    # print(result.span()[0]) #returns position of ':'
-        if (avg_min > 1):
-            avg_min = int(avg_min / (len(list) - num_buttons))
-
-        avg_min = str(avg_min)
-        avg_sec /= (len(list) - num_buttons)
-        avg_sec = round(avg_sec, 2)  # truncates to two decimal places
-
-        if avg_sec < 10:
-            avg_sec = "0" + str(avg_sec)
-        else:
-            avg_sec = str(avg_sec)
-
-        if avg_min == "0":
-            title = "Average Pace: " + avg_sec
-            avg_pace = tk.Label(self.parent, text=title)
-            avg_pace.grid()
-        else:
-            avg_min = avg_min + ":" + avg_sec
-            title = "Average Pace: " + avg_min
-            avg_pace = tk.Label(self.parent, text=title)
-            avg_pace.grid()
-        if len(list) > (num_buttons + 5):
-            self.parent.minsize(width=400, height=self.parent.winfo_height() + 20)
-        return title
-
-    def event_add_split(self, event):
-        self.add_split()
-
-    def event_del_split(self, event):
-        self.del_split()
-
-    def event_calc_avg(self, event):
-        self.calc_avg()
-
-    def event_root(self, event):  # https://web.archive.org/web/20190515021108id_/http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/key-names.html
-        list = self.parent.grid_slaves()
-        print(event.char)
-        print(event.keycode)
-        # http://www.tcl.tk/man/tcl8.4/TkCmd/keysyms.htm
-        # if event.char == "+": #KP_Add, ie the plus symbol on the keypad
-        #     query = "\+" #backslash so re doesn't interpret the "+" as a special char
-        #     pattern = re.compile(query)
-        #
-        #     try:
-        #         for l in list:
-        #             result = pattern.search(l.get())
-        #             if result != "None":
-        #                 l.delete(-1)
-        #         add_split()
-        #     except:
-        #         add_split()
-        #
-        # elif event.char == "-": #KP_Subtract, ie the minus symbol on the keypad
-        #     query = "\+" #backslash so re doesn't interpret the "+" as a special char
-        #     pattern = re.compile(query)
-        #
-        #     try:
-        #         for l in list:
-        #             result = pattern.search(l.get())
-        #             if result != "None":
-        #                 l.delete(-1)
-        #         del_split()
-        #     except:
-        #         del_split()
-        if event.keycode == 78:  # N
-            self.new_file()
-        elif event.keycode == 83:  # S
-            self.save_as()
-        elif event.keycode == 79:  # O
-            self.open_split()
-
-    def del_all(self):
-        list = self.parent.grid_slaves()
-        for l in list:
-            list[0].destroy()
-            list = self.parent.grid_slaves()
-
-    def mode_split(self):
-        self.del_all()
-        self.parent.minsize(width=400, height=200)
-        self.parent.maxsize(width=400, height=200)
-
-        add = tk.Button(self.parent, text="Add", fg="black", command=self.add_split)
-        add.bind("<Return>", self.event_add_split)
-        add.grid(padx=180)
-
-        delete = tk.Button(self.parent, text="Delete", fg="black", command=self.del_split)
-        delete.bind("<Return>", self.event_del_split)
-        delete.grid()
-
-        calc = tk.Button(self.parent, text="Calculate Average", fg="black", command=self.calc_avg)
-        calc.bind("<Return>", self.event_calc_avg)
-        calc.grid()
 
     def mode_convert(self):
         self.del_all()
@@ -793,6 +439,140 @@ class Window(tk.Frame):
         conversion = tk.Button(self.parent, text="Convert", fg="black", command=convert)
         conversion.grid(row=2, column=2)
 
+    def read_pace(self, file_name):
+        list = self.parent.grid_slaves()
+        file = open(file_name, "w")
+        file.write("PACE MODE\n")
+        for i, l in enumerate(reversed(list)):
+            if type(l) == tk.Label and i >= 7:
+                print(i, l["text"])
+                file.write(l["text"])
+                file.write("\n")
+            else:
+                print(i, type(l))
+        file.close()
+
+    def open_pace(self, file_title, name):
+        input_choices = ["200m", "400m", "800m", "1mi", "2mi", "3mi", "5k", "4mi", "5mi"]
+        report_choices = input_choices[:4]
+        min_choices = input_choices[2:]
+        file = open(name, "r")
+        f = file.read()
+        newline = f.count('\n') - 1
+        file.close()
+
+        new_wind = self.new_window()
+        new_wind.parent.title(file_title)
+        new_wind.mode_pacing()
+        list = new_wind.parent.grid_slaves()
+
+        file = open(name, "r")
+        file.readline()
+        pace_dist = ""
+        time = ""
+        first_char_line_1 = ""
+        first_char_line_2 = ""
+        for n in range(newline):
+            split = file.readline()
+            split = split[:-1]  # removes the newline character
+            if n == 0:
+                if split[3] == "m":
+                    first_char_line_1 = split[0:3]
+                else:
+                    first_char_line_1 = split[0]
+
+                #print(first_char_line_1)
+            elif n == 1:
+                if split[3] == "m":
+                    first_char_line_2 = split[0:3]
+                elif split[1] == "m":
+                    first_char_line_2 = split[0]
+                else:
+                    first_char_line_2 = split[0:4]
+
+                #print(first_char_line_2)
+            if n == newline - 1:
+                pattern = re.compile(':')
+                result = pattern.search(split)
+
+                for j in range(result.span()[0]):
+                    pace_dist += split[j]
+                for j in range(len(split)):
+                    if j > result.span()[0] + 1:
+                        time += split[j]
+                #print(pace_dist)
+                #print(time)
+            pace = tk.Label(new_wind.parent, text=split)
+            pace.grid(column=2)
+        try:
+            if int(first_char_line_2) - int(first_char_line_1) > 1:
+                interval = str((int(first_char_line_2) - int(first_char_line_1))) + "m"
+        except(ValueError):
+            if newline != 1:
+                interval = "1mi"
+            else:
+                interval = "200m"
+        #print(pace_dist)
+        input_seconds = tk.Entry()
+        input_minutes = tk.Entry()
+
+        for i, l in enumerate(list):
+            if type(l) == tk.Entry:
+                input_seconds = l
+                #print("hello")
+            elif type(l) == tk.Label and i == 1:
+                seconds_label = l
+                #print("yo")
+            elif type(l) == tk.OptionMenu and i == 3:
+                interval_option = l
+                for k, dist in enumerate(report_choices):
+                    if dist == interval:
+                        interval_option.children["menu"].invoke(k)
+                        #print(k)
+            elif type(l) == tk.OptionMenu and i == 4:
+                dist_option = l
+                for k, dist in enumerate(input_choices):
+                    if dist == pace_dist:
+                        dist_option.children["menu"].invoke(k)
+                        #print(k)
+            #print(i, type(l))
+        list = new_wind.parent.grid_slaves()
+
+        for i, l in enumerate(list):
+            if type(l) == tk.Entry and i == 3:
+                input_minutes = l
+
+        time_min = ""
+        time_sec = ""
+        pattern = re.compile(':')
+        result = pattern.search(time)
+        # print(result)
+        if result is None:
+            try:
+                input_seconds.insert("insert", time)
+            except:
+                input_seconds.delete(0, tk.END)
+                input_seconds.insert("insert", "0")
+        else:
+            try:
+                for j in range(result.span()[0]):
+                    time_min += time[j]
+                for j in range(len(time)):
+                    if j > result.span()[0]:  # position of semicolon
+                        time_sec += time[j]
+                input_minutes.insert("insert", time_min)
+                input_seconds.insert("insert", time_sec)
+            except:
+                input_minutes.delete(0, tk.END)
+                input_minutes.insert("insert", "0")
+                input_seconds.delete(0, tk.END)
+                input_seconds.insert("insert", "0")
+            #print(time_min)
+            #print(time_sec)
+            #print(input_minutes.get())
+        file.close()
+        new_wind.parent.minsize(width=400, height=200 + newline*20)
+
     def mode_pacing(self):
         self.del_all()
         self.parent.minsize(width=400, height=200)
@@ -850,6 +630,8 @@ class Window(tk.Frame):
         report_option.trace("w", clear_splits)
 
         def pace_splits(i, j):
+            clear_splits()
+
             if 3 <= i <= 5:
                 dist = 1609 * (i - 2)
             elif i == 6:
@@ -857,12 +639,12 @@ class Window(tk.Frame):
             elif 7 <= i <= 8:
                 dist = 1609 * (i - 3)
             else:
-                dist = 2 ** i * 200
+                dist = (2 ** i) * 200
 
             if j == 3:
                 report_interval = 1609
             else:
-                report_interval = 2 ** (j) * 200
+                report_interval = (2 ** j) * 200
 
             num_splits = int(dist / report_interval)
             approx_dist = num_splits * report_interval
@@ -889,25 +671,32 @@ class Window(tk.Frame):
 
                     if j != 3:
                         if sec < 10:
-                            tk.Label(self.parent, text="{}m: {}:0{}".format(report_interval * (split + 1), min, sec)).grid(
+                            tk.Label(self.parent,
+                                     text="{}m: {}:0{}".format(report_interval * (split + 1), min, sec)).grid(
                                 row=3 + split, column=2)
                         else:
-                            tk.Label(self.parent, text="{}m: {}:{}".format(report_interval * (split + 1), min, sec)).grid(
+                            tk.Label(self.parent,
+                                     text="{}m: {}:{}".format(report_interval * (split + 1), min, sec)).grid(
                                 row=3 + split, column=2)
                     else:
                         if sec < 10:
-                            tk.Label(self.parent, text="{}mi: {}:0{}".format(split + 1, min, sec)).grid(row=3 + split, column=2)
+                            tk.Label(self.parent, text="{}mi: {}:0{}".format(split + 1, min, sec)).grid(row=3 + split,
+                                                                                                        column=2)
                         else:
-                            tk.Label(self.parent, text="{}mi: {}:{}".format(split + 1, min, sec)).grid(row=3 + split, column=2)
+                            tk.Label(self.parent, text="{}mi: {}:{}".format(split + 1, min, sec)).grid(row=3 + split,
+                                                                                                       column=2)
                 else:
                     if j != 3:
                         if split_sec < 10:
-                            tk.Label(self.parent,text="{}m: {}:0{}".format(report_interval * (split + 1), split_min, split_sec)).grid(row=3 + split, column=2)
+                            tk.Label(self.parent, text="{}m: {}:0{}".format(report_interval * (split + 1), split_min,
+                                                                            split_sec)).grid(row=3 + split, column=2)
                         else:
-                            tk.Label(self.parent, text="{}m: {}:{}".format(report_interval * (split + 1), split_min, split_sec)).grid( row=3 + split, column=2)
+                            tk.Label(self.parent, text="{}m: {}:{}".format(report_interval * (split + 1), split_min,
+                                                                           split_sec)).grid(row=3 + split, column=2)
                     else:
                         if split_sec < 10:
-                            tk.Label(self.parent, text="{}mi: {}:0{}".format(split + 1, split_min, split_sec)).grid(row=3 + split, column=2)
+                            tk.Label(self.parent, text="{}mi: {}:0{}".format(split + 1, split_min, split_sec)).grid(
+                                row=3 + split, column=2)
                         else:
                             tk.Label(self.parent, text="{}mi: {}:{}".format(split + 1, split_min, split_sec)).grid(
                                 row=3 + split,
@@ -915,21 +704,25 @@ class Window(tk.Frame):
 
             if j != 0 and dist == 5000:
                 if float(input_seconds.get()) < 10:
-                    tk.Label(self.parent, text="5000m: {}:0{}".format(input_minutes.get(), float(input_seconds.get()))).grid(
+                    tk.Label(self.parent,
+                             text="5000m: {}:0{}".format(input_minutes.get(), float(input_seconds.get()))).grid(
                         row=3 + (split + 1), column=2)
                 else:
-                    tk.Label(self.parent, text="5000m: {}:{}".format(input_minutes.get(), float(input_seconds.get()))).grid(
+                    tk.Label(self.parent,
+                             text="5000m: {}:{}".format(input_minutes.get(), float(input_seconds.get()))).grid(
                         row=3 + (split + 1), column=2)
 
             elif j != 3 and (dist % 1609 == 0):
                 if float(input_seconds.get()) < 10:
                     tk.Label(self.parent, text="{}mi: {}:0{}".format(round(dist / 1609), input_minutes.get(),
-                                                              float(input_seconds.get()))).grid(row=3 + (split + 1),
-                                                                                                column=2)
+                                                                     float(input_seconds.get()))).grid(
+                        row=3 + (split + 1),
+                        column=2)
                 else:
                     tk.Label(self.parent, text="{}mi: {}:{}".format(round(dist / 1609), input_minutes.get(),
-                                                             float(input_seconds.get()))).grid(row=3 + (split + 1),
-                                                                                               column=2)
+                                                                    float(input_seconds.get()))).grid(
+                        row=3 + (split + 1),
+                        column=2)
 
             if i == 8 and j == 0:
                 self.parent.minsize(width=400, height=950)
@@ -944,7 +737,7 @@ class Window(tk.Frame):
                 for i, dist in enumerate(input_choices):
                     if input_dist == dist:
                         break
-                for j, dist in enumerate(input_choices):
+                for j, dist in enumerate(report_choices):
                     if report_dist == dist:
                         break
 
@@ -965,8 +758,143 @@ class Window(tk.Frame):
                 input_seconds.insert("insert", "0")
                 input_minutes.insert("insert", "0")
             return [i, j]
+
         pace = tk.Button(self.parent, text="Get Splits!", fg="black", command=pacing)
         pace.grid(row=2, column=2)
+
+    def new_window(self):
+        wind = tk.Tk()
+
+        created_wind = Window(wind)
+        wind.focus_force()
+        return created_wind
+
+    def open_window(self):
+        list = self.parent.grid_slaves()
+        button_cnt = 0
+        entry_cnt = 0
+        for l in list:
+            if type(l) == tk.Button:
+                button_cnt += 1
+            elif type(l) == tk.Entry:
+                entry_cnt += 1
+
+        files = [('Text Document', '*.txt'), ('All Files', '*.*')]
+        name = fd.askopenfilename(title="Open", filetypes=files)
+        print(name)
+        file = open(name, "r")
+        primary_title = " - Running Calculator"
+        file_title = os.path.basename(name)
+        file_title += primary_title
+        f = file.readline()
+
+        if str(f) == "SPLIT MODE\n":
+            self.open_split(file_title, file, name)
+            print("1")
+        elif str(f) == "CONVERT MODE\n":
+            self.open_convert(file_title, file, name)
+            print("2")
+        elif str(f) == "PACE MODE\n":
+            self.open_pace(file_title, name)
+
+    def save_as(self, *args):
+        files = [('Text Document', '*.txt'),
+                 ('All Files', '*.*')]
+        saveas = fd.asksaveasfile(filetypes=files, defaultextension=files)
+        print(saveas.name)
+        list = self.parent.grid_slaves()
+        button_cnt = 0
+        entry_cnt = 0
+        for l in list:
+            if type(l) == tk.Button:
+                button_cnt += 1
+            elif type(l) == tk.Entry:
+                entry_cnt += 1
+        if button_cnt == 3:
+            self.read_split(saveas.name)
+        elif entry_cnt > 2:
+            self.read_convert(saveas.name)
+        else:
+            self.read_pace(saveas.name)
+
+    def new_file(self):
+        list = self.grid_slaves()
+        result = ""
+
+        if self.title != "Running Calculator":  # check for changes have been made to entry by comparing to file
+            # get file name from current path, can just look at the title
+
+            # open file name
+
+            # detecting changes to a saved file should be its own function
+
+            file_name = self.title
+
+        # print("Not in FOR")
+        for l in list:
+            print("Not in IF")
+            print(type(l))
+            if type(l) == tk.Entry:
+                result += l.get()
+                print(result)
+            if result == "":
+                self.del_split()
+            elif self.title == "Running Calculator":  # not a loaded file
+                # ask to save file file_dialog
+                self.save_as()
+
+                # if you get numerical values back, ask to save file as
+                # if you have loaded a file and there have been changes to it, ask to save to file
+
+    def quit(self):
+        if mb.askyesno(title="Quit", message="Really quit?"):
+            self.parent.destroy()
+
+    def event_add_split(self, event):
+        self.add_split()
+
+    def event_del_split(self, event):
+        self.del_split()
+
+    def event_calc_avg(self, event):
+        self.calc_avg()
+
+    def event_root(self, event):  # https://web.archive.org/web/20190515021108id_/http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/key-names.html
+        list = self.parent.grid_slaves()
+        print(event.char)
+        print(event.keycode)
+        # http://www.tcl.tk/man/tcl8.4/TkCmd/keysyms.htm
+        # if event.char == "+": #KP_Add, ie the plus symbol on the keypad
+        #     query = "\+" #backslash so re doesn't interpret the "+" as a special char
+        #     pattern = re.compile(query)
+        #
+        #     try:
+        #         for l in list:
+        #             result = pattern.search(l.get())
+        #             if result != "None":
+        #                 l.delete(-1)
+        #         add_split()
+        #     except:
+        #         add_split()
+        #
+        # elif event.char == "-": #KP_Subtract, ie the minus symbol on the keypad
+        #     query = "\+" #backslash so re doesn't interpret the "+" as a special char
+        #     pattern = re.compile(query)
+        #
+        #     try:
+        #         for l in list:
+        #             result = pattern.search(l.get())
+        #             if result != "None":
+        #                 l.delete(-1)
+        #         del_split()
+        #     except:
+        #         del_split()
+        if event.keycode == 78:  # N
+            self.new_window()
+        elif event.keycode == 83:  # S
+            self.save_as()
+        elif event.keycode == 79:  # O
+            self.open_split()
 
     def init_dropdown(self, new_wind, input_str, input_option, report_str, report_option, input_choices, report_choices):
         input_option.set(input_str)
@@ -986,6 +914,6 @@ w1.mainloop()
 #DO NOT IMPACT FUNCTIONALITY OF PROGRAM
 #VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 
-#TODO - Upper left icon and taskbar icon
+#TODO - taskbar icon
 #TODO - when you save a file, the title of the window should update to the name you named the file
 #TODO - Keyboard shortcuts (Ctrl+O OPEN, Ctrl+S SAVE, enter - Calculate Average)
