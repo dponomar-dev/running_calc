@@ -10,6 +10,8 @@ class Window(tk.Frame):
         self.parent = parent
         self.max_entries = 20
         self.num_buttons = 3
+        self.selected_mode = tk.IntVar(self.parent)
+        self.selected_mode.set(1)
         self.init_UI()
 
     def init_UI(self):
@@ -40,7 +42,7 @@ class Window(tk.Frame):
 
         self.parent.config(menu=menubar)
         self.bind("<Key>", self.event_root)
-        optionsmenu.invoke(2)
+        optionsmenu.invoke(int(self.selected_mode.get()))
 
     def del_all(self):
         list = self.parent.grid_slaves()
@@ -776,18 +778,13 @@ class Window(tk.Frame):
         file_title = os.path.basename(saveas.name)
         file_title += primary_title
         self.parent.title(file_title)
-        button_cnt = 0
-        entry_cnt = 0
-        for l in list:
-            if type(l) == tk.Button:
-                button_cnt += 1
-            elif type(l) == tk.Entry:
-                entry_cnt += 1
-        if button_cnt == 3:
+
+        current_mode = self.selected_mode.get()
+        if current_mode == 0:
             self.read_split(saveas.name)
-        elif entry_cnt > 2:
+        elif current_mode == 1:
             self.read_convert(saveas.name)
-        else:
+        elif current_mode == 2:
             self.read_pace(saveas.name)
 
     def quit(self):
