@@ -39,10 +39,12 @@ class Window(tk.Frame):
         aboutmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="About", menu=aboutmenu)
         # aboutmenu.add_command(label="About the Creator",)
-
         self.parent.config(menu=menubar)
-        self.bind("<Key>", self.event_root)
-        optionsmenu.invoke(int(self.selected_mode.get()))
+        optionsmenu.invoke(self.selected_mode.get())
+
+        self.bind_all("<Control-n>", self.event_new_window)
+        self.bind_all("<Control-o>", self.event_open_window)
+        self.bind_all("<Control-s>", self.event_save_as)
 
     def del_all(self):
         list = self.parent.grid_slaves()
@@ -791,6 +793,21 @@ class Window(tk.Frame):
         if mb.askyesno(title="Quit", message="Really quit?"):
             self.parent.destroy()
 
+    # resources on events
+    # https://web.archive.org/web/20190515021108id_/http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/key-names.html
+    # https://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
+    # http://www.tcl.tk/man/tcl8.4/TkCmd/keysyms.htm
+    # https://stackoverflow.com/questions/16082243/how-to-bind-ctrl-in-python-tkinter
+
+    def event_new_window(self, event):
+        self.new_window()
+
+    def event_open_window(self, event):
+        self.open_window()
+
+    def event_save_as(self, event):
+        self.save_as()
+
     def event_add_split(self, event):
         self.add_split()
 
@@ -799,43 +816,6 @@ class Window(tk.Frame):
 
     def event_calc_avg(self, event):
         self.calc_avg()
-
-    def event_root(self, event):  # https://web.archive.org/web/20190515021108id_/http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/key-names.html
-        list = self.parent.grid_slaves()
-        print(event.char)
-        print(event.keycode)
-        # http://www.tcl.tk/man/tcl8.4/TkCmd/keysyms.htm
-        # if event.char == "+": #KP_Add, ie the plus symbol on the keypad
-        #     query = "\+" #backslash so re doesn't interpret the "+" as a special char
-        #     pattern = re.compile(query)
-        #
-        #     try:
-        #         for l in list:
-        #             result = pattern.search(l.get())
-        #             if result != "None":
-        #                 l.delete(-1)
-        #         add_split()
-        #     except:
-        #         add_split()
-        #
-        # elif event.char == "-": #KP_Subtract, ie the minus symbol on the keypad
-        #     query = "\+" #backslash so re doesn't interpret the "+" as a special char
-        #     pattern = re.compile(query)
-        #
-        #     try:
-        #         for l in list:
-        #             result = pattern.search(l.get())
-        #             if result != "None":
-        #                 l.delete(-1)
-        #         del_split()
-        #     except:
-        #         del_split()
-        if event.keycode == 78:  # N
-            self.new_window()
-        elif event.keycode == 83:  # S
-            self.save_as()
-        elif event.keycode == 79:  # O
-            self.open_split()
 
     def init_dropdown(self, new_wind, input_str, input_option, report_str, report_option, input_choices, report_choices):
         input_option.set(input_str)
@@ -859,4 +839,4 @@ if __name__ == "__main__":
 
 #TODO - taskbar icon
 #DONE - when you save a file, the title of the window should update to the name you named the file
-#TODO - Keyboard shortcuts (Ctrl+O OPEN, Ctrl+S SAVE, enter - Calculate Average)
+#DONE - Keyboard shortcuts (Ctrl+O OPEN, Ctrl+S SAVE, enter - Calculate Average)
