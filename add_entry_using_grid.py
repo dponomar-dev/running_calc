@@ -20,12 +20,11 @@ class Window(tk.Frame):
         self.parent.title('Running Calculator')
 
         menubar = tk.Menu(self.parent)
-        # create a pulldown menu, and add it to the menu bar
         filemenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=filemenu)
-        filemenu.add_command(label="New" + "                 Ctrl+N", command=self.new_window)  # fd.open_file_dir
-        filemenu.add_command(label="Open" + "               Ctrl+O", command=self.open_window)  # fd.open_file_dir
-        filemenu.add_command(label="Save As" + "            Ctrl+S", command=self.save_as)  # fd.save_current_proj
+        filemenu.add_command(label="New" + "                 Ctrl+N", command=self.new_window)
+        filemenu.add_command(label="Open" + "               Ctrl+O", command=self.open_window)
+        filemenu.add_command(label="Save As" + "            Ctrl+S", command=self.save_as)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=self.quit)
 
@@ -421,6 +420,7 @@ class Window(tk.Frame):
         for i, l in enumerate(list):
             if type(l) == tk.Button:
                 l.invoke()
+                l.invoke()
                 break
         list = self.parent.grid_slaves()
         for i, l in enumerate(reversed(list)):
@@ -435,12 +435,13 @@ class Window(tk.Frame):
         file.close()
 
     def open_pace(self, file_title, name):
-        input_choices = ["200m", "400m", "800m", "1mi", "2mi", "3mi", "5k", "4mi", "5mi"]
+        input_choices = ["200m", "400m", "800m", "1mi", "2mi", "3mi", "5000m", "4mi", "5mi"]
         report_choices = input_choices[:4]
         min_choices = input_choices[2:]
         file = open(name, "r")
         f = file.read()
         newline = f.count('\n') - 1
+        print(newline)
         file.close()
 
         new_wind = self.new_window()
@@ -463,8 +464,6 @@ class Window(tk.Frame):
                     first_char_line_1 = split[0:3]
                 else:
                     first_char_line_1 = split[0]
-
-                #print(first_char_line_1)
             elif n == 1:
                 if split[3] == "m":
                     first_char_line_2 = split[0:3]
@@ -472,8 +471,6 @@ class Window(tk.Frame):
                     first_char_line_2 = split[0]
                 else:
                     first_char_line_2 = split[0:4]
-
-                #print(first_char_line_2)
             if n == newline - 1:
                 pattern = re.compile(':')
                 result = pattern.search(split)
@@ -483,10 +480,6 @@ class Window(tk.Frame):
                 for j in range(len(split)):
                     if j > result.span()[0] + 1:
                         time += split[j]
-                #print(pace_dist)
-                #print(time)
-            pace = tk.Label(new_wind.parent, text=split)
-            pace.grid(column=2)
         try:
             if int(first_char_line_2) - int(first_char_line_1) > 1:
                 interval = str((int(first_char_line_2) - int(first_char_line_1))) + "m"
@@ -495,30 +488,24 @@ class Window(tk.Frame):
         except ValueError:
             if newline == 1:
                 interval = pace_dist
-        #print(pace_dist)
         input_seconds = tk.Entry()
         input_minutes = tk.Entry()
 
         for i, l in enumerate(list):
             if type(l) == tk.Entry:
                 input_seconds = l
-                #print("hello")
             elif type(l) == tk.Label and i == 1:
                 seconds_label = l
-                #print("yo")
             elif type(l) == tk.OptionMenu and i == 3:
                 interval_option = l
                 for k, dist in enumerate(report_choices):
                     if dist == interval:
                         interval_option.children["menu"].invoke(k)
-                        #print(k)
             elif type(l) == tk.OptionMenu and i == 4:
                 dist_option = l
                 for k, dist in enumerate(input_choices):
                     if dist == pace_dist:
                         dist_option.children["menu"].invoke(k)
-                        #print(k)
-            #print(i, type(l))
         list = new_wind.parent.grid_slaves()
 
         for i, l in enumerate(list):
@@ -529,7 +516,6 @@ class Window(tk.Frame):
         time_sec = ""
         pattern = re.compile(':')
         result = pattern.search(time)
-        # print(result)
         if result is None:
             try:
                 input_seconds.insert("insert", time)
@@ -550,11 +536,10 @@ class Window(tk.Frame):
                 input_minutes.insert("insert", "0")
                 input_seconds.delete(0, tk.END)
                 input_seconds.insert("insert", "0")
-            #print(time_min)
-            #print(time_sec)
-            #print(input_minutes.get())
         file.close()
-        new_wind.parent.minsize(width=400, height=200 + newline*20)
+        for l in list:
+            if type(l) == tk.Button:
+                l.invoke()
 
     def mode_pacing(self):
         self.del_all()
@@ -564,7 +549,7 @@ class Window(tk.Frame):
         label_input = tk.Label(self.parent, text="Distance").grid(row=0, sticky="W")
         label_output = tk.Label(self.parent, text="Reporting Interval").grid(row=1, sticky="W")
 
-        input_choices = ["200m", "400m", "800m", "1mi", "2mi", "3mi", "5k", "4mi", "5mi"]
+        input_choices = ["200m", "400m", "800m", "1mi", "2mi", "3mi", "5000m", "4mi", "5mi"]
         report_choices = input_choices[:4]
         min_choices = input_choices[2:]
 
@@ -864,9 +849,11 @@ class Window(tk.Frame):
         report_menu = tk.OptionMenu(new_wind.parent, report_option, *report_choices)  # asterisk makes the choices vertical instead of horizontal
         report_menu.grid(row=1, column=1)
 
-root = tk.Tk()
-w1=Window(root)
-w1.mainloop()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    w1 = Window(root)
+    w1.mainloop()
 
 #TODO - HIGH TO LOW PRIORITY
 
