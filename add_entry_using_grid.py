@@ -4,13 +4,12 @@ from tkinter import messagebox as mb
 import os
 import re
 
-max_entries = 20
-num_buttons = 3
-
 class Window(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
         self.parent = parent
+        self.max_entries = 20
+        self.num_buttons = 3
         self.init_UI()
 
     def init_UI(self):
@@ -59,22 +58,20 @@ class Window(tk.Frame):
         self.del_avg()
         entry = tk.Entry(self.parent)
         list = self.parent.grid_slaves()
-        # num = len(list) - num_buttons
-        # text = tk.Label(root, text=str(num))
-        if (len(list) < max_entries + num_buttons):
+        if (len(list) < self.max_entries + self.num_buttons):
             entry.grid()
-        if (len(list) > (num_buttons + 5)) and len(list) < max_entries + num_buttons:
-            self.parent.minsize(width=400, height=200 + (20 * (len(list) - (num_buttons + 5))))
+        if (len(list) > (self.num_buttons + 5)) and len(list) < self.max_entries + self.num_buttons:
+            self.parent.minsize(width=400, height=200 + (20 * (len(list) - (self.num_buttons + 5))))
             self.parent.maxsize(width=400, height=500)
 
     def del_split(self):
         self.del_avg()
         list = self.parent.grid_slaves()
-        if (len(list) > num_buttons):
+        if (len(list) > self.num_buttons):
             list[0].destroy()
         # calc_avg()
-        if len(list) > (num_buttons + 5):
-            self.parent.minsize(width=400, height=200 + (20 * (len(list) - (num_buttons + 7))))
+        if len(list) > (self.num_buttons + 5):
+            self.parent.minsize(width=400, height=200 + (20 * (len(list) - (self.num_buttons + 7))))
         else:
             self.parent.minsize(width=400, height=200)
 
@@ -82,13 +79,13 @@ class Window(tk.Frame):
         list = self.parent.grid_slaves()
         if (type(list[0]) == tk.Label):
             list[0].destroy()
-            if len(list) > (num_buttons + 5):
+            if len(list) > (self.num_buttons + 5):
                 self.parent.minsize(width=400, height=self.parent.winfo_height() - 20)
             return 0
         avg_sec = 0.0
         avg_min = 0
 
-        for l in list[:len(list) - num_buttons]:
+        for l in list[:len(list) - self.num_buttons]:
             pattern = re.compile(':')
             result = pattern.search(l.get())
             # print(result)
@@ -115,14 +112,13 @@ class Window(tk.Frame):
                 except:
                     l.delete(0, tk.END)
                     l.insert("insert", "0")
-                    avg_sec += float(
-                        l.get())  # indices result.span()[0] + 1 to l.get()[-1] (last index) are SECONDS indices
+                    avg_sec += float(l.get())  # indices result.span()[0] + 1 to l.get()[-1] (last index) are SECONDS indices
                     # print(result.span()[0]) #returns position of ':'
         if (avg_min > 1):
-            avg_min = int(avg_min / (len(list) - num_buttons))
+            avg_min = int(avg_min / (len(list) - self.num_buttons))
 
         avg_min = str(avg_min)
-        avg_sec /= (len(list) - num_buttons)
+        avg_sec /= (len(list) - self.num_buttons)
         avg_sec = round(avg_sec, 2)  # truncates to two decimal places
 
         if avg_sec < 10:
@@ -139,7 +135,7 @@ class Window(tk.Frame):
             title = "Average Pace: " + avg_min
             avg_pace = tk.Label(self.parent, text=title)
             avg_pace.grid()
-        if len(list) > (num_buttons + 5):
+        if len(list) > (self.num_buttons + 5):
             self.parent.minsize(width=400, height=self.parent.winfo_height() + 20)
         return title
 
