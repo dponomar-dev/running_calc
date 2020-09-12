@@ -809,35 +809,6 @@ class Window(tk.Frame):
         else:
             self.read_pace(saveas.name)
 
-    def new_file(self):
-        list = self.grid_slaves()
-        result = ""
-
-        if self.title != "Running Calculator":  # check for changes have been made to entry by comparing to file
-            # get file name from current path, can just look at the title
-
-            # open file name
-
-            # detecting changes to a saved file should be its own function
-
-            file_name = self.title
-
-        # print("Not in FOR")
-        for l in list:
-            print("Not in IF")
-            print(type(l))
-            if type(l) == tk.Entry:
-                result += l.get()
-                print(result)
-            if result == "":
-                self.del_split()
-            elif self.title == "Running Calculator":  # not a loaded file
-                # ask to save file file_dialog
-                self.save_as()
-
-                # if you get numerical values back, ask to save file as
-                # if you have loaded a file and there have been changes to it, ask to save to file
-
     def quit(self):
         if mb.askyesno(title="Quit", message="Really quit?"):
             self.parent.destroy()
@@ -907,5 +878,5 @@ w1.mainloop()
 #VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 
 #TODO - taskbar icon
-#TODO - when you save a file, the title of the window should update to the name you named the file
+#DONE - when you save a file, the title of the window should update to the name you named the file
 #TODO - Keyboard shortcuts (Ctrl+O OPEN, Ctrl+S SAVE, enter - Calculate Average)
