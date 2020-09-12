@@ -42,7 +42,7 @@ class Window(tk.Frame):
 
         self.parent.config(menu=menubar)
         self.bind("<Key>", self.event_root)
-        optionsmenu.invoke(1)
+        optionsmenu.invoke(2)
 
     def del_all(self):
         list = self.parent.grid_slaves()
@@ -443,11 +443,15 @@ class Window(tk.Frame):
         list = self.parent.grid_slaves()
         file = open(file_name, "w")
         file.write("PACE MODE\n")
+        pattern = re.compile(':')
+
         for i, l in enumerate(reversed(list)):
             if type(l) == tk.Label and i >= 7:
-                print(i, l["text"])
-                file.write(l["text"])
-                file.write("\n")
+                result = pattern.search(l["text"])
+                if result is not None:
+                    print(i, l["text"])
+                    file.write(l["text"])
+                    file.write("\n")
             else:
                 print(i, type(l))
         file.close()
@@ -469,6 +473,7 @@ class Window(tk.Frame):
         file = open(name, "r")
         file.readline()
         pace_dist = ""
+        interval = ""
         time = ""
         first_char_line_1 = ""
         first_char_line_2 = ""
@@ -507,11 +512,11 @@ class Window(tk.Frame):
         try:
             if int(first_char_line_2) - int(first_char_line_1) > 1:
                 interval = str((int(first_char_line_2) - int(first_char_line_1))) + "m"
-        except(ValueError):
-            if newline != 1:
-                interval = "1mi"
             else:
-                interval = "200m"
+                interval = "1mi"
+        except ValueError:
+            if newline == 1:
+                interval = pace_dist
         #print(pace_dist)
         input_seconds = tk.Entry()
         input_minutes = tk.Entry()
@@ -648,9 +653,18 @@ class Window(tk.Frame):
 
             num_splits = int(dist / report_interval)
             approx_dist = num_splits * report_interval
-
-            min = int(input_minutes.get())
-            sec = float(input_seconds.get())
+            try:
+                min = int(input_minutes.get())
+            except ValueError:
+                min = 0
+                input_minutes.delete(0, tk.END)
+                input_minutes.insert(0, "0")
+            try:
+                sec = float(input_seconds.get())
+            except ValueError:
+                sec = 0
+                input_seconds.delete(0, tk.END)
+                input_seconds.insert(0, "0")
             total_sec = min * 60 + sec
             approx_total_sec = total_sec * approx_dist / dist
 
@@ -730,33 +744,25 @@ class Window(tk.Frame):
                 self.parent.minsize(width=400, height=200 + (num_splits - 3) * 20)
 
         def pacing():
-            try:
-                input_dist = input_option.get()
-                report_dist = report_option.get()
+            input_dist = input_option.get()
+            report_dist = report_option.get()
 
-                for i, dist in enumerate(input_choices):
-                    if input_dist == dist:
-                        break
-                for j, dist in enumerate(report_choices):
-                    if report_dist == dist:
-                        break
+            for i, dist in enumerate(input_choices):
+                if input_dist == dist:
+                    break
+            for j, dist in enumerate(report_choices):
+                if report_dist == dist:
+                    break
 
-                print("this is i:", i)
-                print("this is j:", j)
+            print("this is i:", i)
+            print("this is j:", j)
 
-                if i < j:
-                    report_option.set(input_choices[i])
-                    pace_splits(i, j)
-                else:
-                    pace_splits(i, j)
+            if i < j:
+                report_option.set(input_choices[i])
+                pace_splits(i, j)
+            else:
+                pace_splits(i, j)
 
-            except ValueError:
-
-                input_seconds.delete(0, tk.END)
-                input_minutes.delete(0, tk.END)
-
-                input_seconds.insert("insert", "0")
-                input_minutes.insert("insert", "0")
             return [i, j]
 
         pace = tk.Button(self.parent, text="Get Splits!", fg="black", command=pacing)
