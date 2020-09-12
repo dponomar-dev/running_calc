@@ -203,6 +203,9 @@ class Window(tk.Frame):
         list = self.parent.grid_slaves()
         file = open(file_name, "w")
         entry_list = []
+        for l in list:
+            if type(l) == tk.Button:
+                l.invoke()
         for i, l in enumerate(reversed(list)):
             if type(l) == tk.Entry:
                 entry_list += [i]
@@ -272,8 +275,8 @@ class Window(tk.Frame):
                 file.readline()
             elif j == 3:
                 convert_dist = file.readline()
-            elif j == 4:
-                convert_time = file.readline()[:-1]
+            # elif j == 4:
+            #     convert_time = file.readline()[:-1]
         pattern = re.compile(':')
         result = pattern.search(input_time)
         input_min = ""
@@ -285,21 +288,21 @@ class Window(tk.Frame):
             if j > result.span()[0]:
                 input_sec += input_time[j]
 
-        pattern = re.compile(':')
-        result = pattern.search(convert_time)
-        output_min = ""
-        output_sec = ""
+        # pattern = re.compile(':')
+        # result = pattern.search(convert_time)
+        # output_min = ""
+        # output_sec = ""
 
-        if result is not None:
-            for j in range(result.span()[0]):
-                output_min += convert_time[j]
-            for j in range(len(convert_time)):
-                if j > result.span()[0]:
-                    output_sec += convert_time[j]
-        else:
-            output_sec = re.findall("\d+\.\d+", convert_time)
-            if len(output_sec) == 0:
-                output_sec = re.findall(r'[0-9]+', convert_time)
+        # if result is not None:
+        #     for j in range(result.span()[0]):
+        #         output_min += convert_time[j]
+        #     for j in range(len(convert_time)):
+        #         if j > result.span()[0]:
+        #             output_sec += convert_time[j]
+        # else:
+        #     output_sec = re.findall("\d+\.\d+", convert_time)
+        #     if len(output_sec) == 0:
+        #         output_sec = re.findall(r'[0-9]+', convert_time)
 
         #print(output_min)
         #print(output_sec)
@@ -334,12 +337,14 @@ class Window(tk.Frame):
                 elif i == 6:
                     l.delete(0, tk.END)
                     l.insert(0, input_sec)
-                elif i == 8:
-                    l.delete(0, tk.END)
-                    l.insert(0, output_sec)
-                elif i == 12:
-                    l.delete(0, tk.END)
-                    l.insert(0, output_min)
+                # elif i == 8:
+                #     l.delete(0, tk.END)
+                #     l.insert(0, output_sec)
+                # elif i == 12:
+                #     l.delete(0, tk.END)
+                #     l.insert(0, output_min)
+            elif type(l) == tk.Button:
+                l.invoke()
         file.close()
 
     def mode_convert(self):
@@ -444,7 +449,11 @@ class Window(tk.Frame):
         file = open(file_name, "w")
         file.write("PACE MODE\n")
         pattern = re.compile(':')
-
+        for i, l in enumerate(list):
+            if type(l) == tk.Button:
+                l.invoke()
+                break
+        list = self.parent.grid_slaves()
         for i, l in enumerate(reversed(list)):
             if type(l) == tk.Label and i >= 7:
                 result = pattern.search(l["text"])
@@ -809,6 +818,10 @@ class Window(tk.Frame):
         saveas = fd.asksaveasfile(filetypes=files, defaultextension=files)
         print(saveas.name)
         list = self.parent.grid_slaves()
+        primary_title = " - Running Calculator"
+        file_title = os.path.basename(saveas.name)
+        file_title += primary_title
+        self.parent.title(file_title)
         button_cnt = 0
         entry_cnt = 0
         for l in list:
