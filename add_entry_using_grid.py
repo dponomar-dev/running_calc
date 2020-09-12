@@ -275,8 +275,6 @@ class Window(tk.Frame):
                 file.readline()
             elif j == 3:
                 convert_dist = file.readline()
-            # elif j == 4:
-            #     convert_time = file.readline()[:-1]
         pattern = re.compile(':')
         result = pattern.search(input_time)
         input_min = ""
@@ -287,25 +285,6 @@ class Window(tk.Frame):
         for j in range(len(input_time)):
             if j > result.span()[0]:
                 input_sec += input_time[j]
-
-        # pattern = re.compile(':')
-        # result = pattern.search(convert_time)
-        # output_min = ""
-        # output_sec = ""
-
-        # if result is not None:
-        #     for j in range(result.span()[0]):
-        #         output_min += convert_time[j]
-        #     for j in range(len(convert_time)):
-        #         if j > result.span()[0]:
-        #             output_sec += convert_time[j]
-        # else:
-        #     output_sec = re.findall("\d+\.\d+", convert_time)
-        #     if len(output_sec) == 0:
-        #         output_sec = re.findall(r'[0-9]+', convert_time)
-
-        #print(output_min)
-        #print(output_sec)
 
         if convert_dist[3] == "m":
             convert_dist = "200m"
@@ -337,12 +316,6 @@ class Window(tk.Frame):
                 elif i == 6:
                     l.delete(0, tk.END)
                     l.insert(0, input_sec)
-                # elif i == 8:
-                #     l.delete(0, tk.END)
-                #     l.insert(0, output_sec)
-                # elif i == 12:
-                #     l.delete(0, tk.END)
-                #     l.insert(0, output_min)
             elif type(l) == tk.Button:
                 l.invoke()
         file.close()
