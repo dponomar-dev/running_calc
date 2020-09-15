@@ -11,7 +11,7 @@ class Window(tk.Frame):
         self.max_entries = 20
         self.num_buttons = 3
         self.selected_mode = tk.IntVar(self.parent)
-        self.selected_mode.set(1)
+        self.selected_mode.set(0)
         self.init_UI()
 
     def init_UI(self):
@@ -54,24 +54,70 @@ class Window(tk.Frame):
 
     def del_avg(self):
         list = self.parent.grid_slaves()
+
+        #if label is the 0th and contains :
         if (type(list[0]) == tk.Label):
-            list[0].destroy()
+            pattern = re.compile(':')
+            result = pattern.search(list[0]["text"])
+            if result is not None:
+                list[0].destroy()
 
     def add_split(self):
         self.del_avg()
+
+        input_choices = ["200m", "400m", "600m", "800m", "1000m", "1200m", "1mi"]
+
+        input_option = tk.StringVar(self.parent)
+        input_option.set("200m")
+        input_menu = tk.OptionMenu(self.parent, input_option, *input_choices)
+
+        rest = tk.Label(self.parent, text="Rest")
+        split = tk.Label(self.parent, text="Split")
         entry = tk.Entry(self.parent)
         list = self.parent.grid_slaves()
-        if (len(list) < self.max_entries + self.num_buttons):
-            entry.grid()
+        entry_cnt = 0
+        for l in list:
+            if type(l) == tk.Entry:
+                entry_cnt += 1
+            if type(l) != tk.Button:
+                print(type(l))
+        print("============")
+        if (len(list) < self.max_entries + self.num_buttons) and entry_cnt < 1:
+            split.grid(row=self.num_buttons+entry_cnt, column=0)
+            entry.grid(row=self.num_buttons+entry_cnt, column=1)
+            input_menu.grid(row=self.num_buttons+entry_cnt, column=2)
+        elif entry_cnt % 2 == 1:
+            entry.grid(row=self.num_buttons+entry_cnt, column=1)
+            rest.grid(row=self.num_buttons+entry_cnt, column=0)
+        else:
+            split.grid(row=self.num_buttons + entry_cnt, column=0)
+            entry.grid(row=self.num_buttons+entry_cnt, column=1)
+            input_menu.grid(row=self.num_buttons+entry_cnt, column=2)
+
         if (len(list) > (self.num_buttons + 5)) and len(list) < self.max_entries + self.num_buttons:
             self.parent.minsize(width=400, height=200 + (20 * (len(list) - (self.num_buttons + 5))))
             self.parent.maxsize(width=400, height=500)
-
+        list = self.parent.grid_slaves()
+        for l in list:
+            if type(l) != tk.Button:
+                print(type(l))
+        print("============")
     def del_split(self):
         self.del_avg()
         list = self.parent.grid_slaves()
+        entry_cnt = 0
+        for l in list:
+            if type(l) == tk.Entry:
+                entry_cnt += 1
         if (len(list) > self.num_buttons):
-            list[0].destroy()
+            if entry_cnt % 2 == 0:
+                list[0].destroy()
+                list[1].destroy()
+            elif entry_cnt % 2 == 1:
+                list[0].destroy()
+                list[1].destroy()
+                list[2].destroy()
+
         # calc_avg()
         if len(list) > (self.num_buttons + 5):
             self.parent.minsize(width=400, height=200 + (20 * (len(list) - (self.num_buttons + 7))))
@@ -188,15 +234,15 @@ class Window(tk.Frame):
 
         add = tk.Button(self.parent, text="Add", fg="black", command=self.add_split)
         add.bind("<Return>", self.event_add_split)
-        add.grid(padx=180)
+        add.grid(row=0, column=5)
 
         delete = tk.Button(self.parent, text="Delete", fg="black", command=self.del_split)
         delete.bind("<Return>", self.event_del_split)
-        delete.grid()
+        delete.grid(row=1, column=5)
 
         calc = tk.Button(self.parent, text="Calculate Average", fg="black", command=self.calc_avg)
         calc.bind("<Return>", self.event_calc_avg)
-        calc.grid()
+        calc.grid(row=2, column=5)
 
     def read_convert(self, file_name):
         list = self.parent.grid_slaves()
