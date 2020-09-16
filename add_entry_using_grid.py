@@ -8,7 +8,7 @@ class Window(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
         self.parent = parent
-        self.max_entries = 20
+        self.max_entries = 30
         self.num_buttons = 3
         self.selected_mode = tk.IntVar(self.parent)
         self.selected_mode.set(0)
@@ -83,20 +83,20 @@ class Window(tk.Frame):
                 print(type(l))
         print("============")
         if (len(list) < self.max_entries + self.num_buttons) and entry_cnt < 1:
-            split.grid(row=self.num_buttons+entry_cnt, column=0)
+            split.grid(row=self.num_buttons+entry_cnt, column=0, columnspan=2)
             entry.grid(row=self.num_buttons+entry_cnt, column=1)
             input_menu.grid(row=self.num_buttons+entry_cnt, column=2)
         elif entry_cnt % 2 == 1:
             entry.grid(row=self.num_buttons+entry_cnt, column=1)
-            rest.grid(row=self.num_buttons+entry_cnt, column=0)
+            rest.grid(row=self.num_buttons+entry_cnt, column=0, columnspan=2)
         else:
-            split.grid(row=self.num_buttons + entry_cnt, column=0)
+            split.grid(row=self.num_buttons + entry_cnt, column=0, columnspan=2)
             entry.grid(row=self.num_buttons+entry_cnt, column=1)
             input_menu.grid(row=self.num_buttons+entry_cnt, column=2)
 
         if (len(list) > (self.num_buttons + 5)) and len(list) < self.max_entries + self.num_buttons:
-            self.parent.minsize(width=400, height=200 + (20 * (len(list) - (self.num_buttons + 5))))
-            self.parent.maxsize(width=400, height=500)
+            self.parent.minsize(width=400, height=200 + (20 * (entry_cnt+self.num_buttons)))
+            self.parent.maxsize(width=400, height=1000)
         list = self.parent.grid_slaves()
         for l in list:
             if type(l) != tk.Button:
@@ -120,70 +120,125 @@ class Window(tk.Frame):
 
         # calc_avg()
         if len(list) > (self.num_buttons + 5):
-            self.parent.minsize(width=400, height=200 + (20 * (len(list) - (self.num_buttons + 7))))
+            self.parent.minsize(width=400, height=200 + (20 * (entry_cnt - 7)))
         else:
             self.parent.minsize(width=400, height=200)
 
     def calc_avg(self):
         list = self.parent.grid_slaves()
-        if (type(list[0]) == tk.Label):
+        pattern = re.compile(':')
+        for l in list:
+            print(type(l))
+        print("=============")
+        if (type(list[0]) == tk.Label and pattern.search(list[0]["text"]) is not None):
             list[0].destroy()
+            list[1].destroy()
             if len(list) > (self.num_buttons + 5):
                 self.parent.minsize(width=400, height=self.parent.winfo_height() - 20)
             return 0
         avg_sec = 0.0
         avg_min = 0
+        rest_min = 0
+        rest_sec = 0.0
+        entry_cnt = 0
 
-        for l in list[:len(list) - self.num_buttons]:
-            pattern = re.compile(':')
-            result = pattern.search(l.get())
-            # print(result)
-            if result == None:
-                try:
-                    avg_sec += float(l.get())
-                except:
-                    l.delete(0, tk.END)
-                    l.insert("insert", "0")
-                    avg_sec += float(l.get())
-            else:
-                try:
-                    min = ""
-                    sec = ""
-                    for j in range(result.span()[0]):
-                        min += l.get()[j]
-                    for j in range(len(l.get())):
-                        if j > result.span()[0]:  # position of semicolon
-                            sec += l.get()[j]
-                    min = int(min)
-                    sec = float(sec)
-                    avg_min += min  # indices 0 to result.span()[0] (exclusive) are MINUTES indices
-                    avg_sec += sec
-                except:
-                    l.delete(0, tk.END)
-                    l.insert("insert", "0")
-                    avg_sec += float(l.get())  # indices result.span()[0] + 1 to l.get()[-1] (last index) are SECONDS indices
-                    # print(result.span()[0]) #returns position of ':'
+        for l in list:
+            if type(l) == tk.Entry:
+                entry_cnt += 1
+                pattern = re.compile(':')
+                result = pattern.search(l.get())
+                # print(result)
+                if result is None:
+                    try:
+                        if entry_cnt % 2 == 1:
+                            avg_sec += float(l.get())
+                        elif entry_cnt % 2 == 0:
+                            rest_sec += float(l.get())
+                    except:
+                        l.delete(0, tk.END)
+                        l.insert("insert", "0")
+                        if entry_cnt % 2 == 1:
+                            avg_sec += float(l.get())
+                        elif entry_cnt % 2 == 0:
+                            rest_sec += float(l.get())
+                else:
+                    try:
+                        min = ""
+                        sec = ""
+                        for j in range(result.span()[0]):
+                            min += l.get()[j]
+                        for j in range(len(l.get())):
+                            if j > result.span()[0]:  # position of semicolon
+                                sec += l.get()[j]
+                        min = int(min)
+                        sec = float(sec)
+
+                        if entry_cnt % 2 == 1:
+                            avg_min += min  # indices 0 to result.span()[0] (exclusive) are MINUTES indices
+                            avg_sec += sec
+                        elif entry_cnt % 2 == 0:
+                            rest_min += min
+                            rest_sec += sec
+                    except:
+                        l.delete(0, tk.END)
+                        l.insert("insert", "0")
+                        if entry_cnt % 2 == 1:
+                            avg_sec += float(l.get())
+                        elif entry_cnt % 2 == 0:
+                            rest_sec += float(l.get())  # indices result.span()[0] + 1 to l.get()[-1] (last index) are SECONDS indices
+                        # print(result.span()[0]) #returns position of ':'
+        split_cnt = 0
+        rest_cnt = 0
+        if entry_cnt < 3:
+            split_cnt = 1
+        elif entry_cnt % 2 == 0:
+            split_cnt = int(entry_cnt / 2)
+        elif entry_cnt % 2 == 1:
+            split_cnt = int(entry_cnt / 2) + 1
+
         if (avg_min > 1):
-            avg_min = int(avg_min / (len(list) - self.num_buttons))
+            avg_min = int(avg_min / split_cnt)
+        # if rest_min > 1:
+        #     rest_min = int(rest_min / split_cnt)
 
-        avg_min = str(avg_min)
-        avg_sec /= (len(list) - self.num_buttons)
+        avg_min = str(int(avg_min / split_cnt))
+        print("Avg_sec:", avg_sec, "Split_cnt", split_cnt)
+        avg_sec /= split_cnt
         avg_sec = round(avg_sec, 2)  # truncates to two decimal places
+
+        rest_min = str(int(rest_min + rest_sec / 60))
+        rest_sec %= 60
+        rest_sec = round(rest_sec, 2)
 
         if avg_sec < 10:
             avg_sec = "0" + str(avg_sec)
         else:
             avg_sec = str(avg_sec)
+        if rest_sec < 10:
+            rest_sec = "0" + str(rest_sec)
+        else:
+            rest_sec = str(rest_sec)
+
 
         if avg_min == "0":
             title = "Average Pace: " + avg_sec
             avg_pace = tk.Label(self.parent, text=title)
-            avg_pace.grid()
+            avg_pace.grid(column=1)
         else:
             avg_min = avg_min + ":" + avg_sec
             title = "Average Pace: " + avg_min
             avg_pace = tk.Label(self.parent, text=title)
-            avg_pace.grid()
+            avg_pace.grid(column=1)
+        if rest_min == "0":
+            title = "Total Rest: " + rest_sec
+            rest_time = tk.Label(self.parent, text=title)
+            rest_time.grid(column=1)
+        else:
+            rest_min = rest_min + ":" + rest_sec
+            title = "Total Pace: " + rest_min
+            rest_time = tk.Label(self.parent, text=title)
+            rest_time.grid(column=1)
+
         if len(list) > (self.num_buttons + 5):
             self.parent.minsize(width=400, height=self.parent.winfo_height() + 20)
         return title
@@ -232,17 +287,20 @@ class Window(tk.Frame):
         self.parent.minsize(width=400, height=200)
         self.parent.maxsize(width=400, height=200)
 
+        buffer = tk.Label(self.parent, text="", bg="#39cced", width=20)
+        buffer.grid(row=0, column=0)
+
         add = tk.Button(self.parent, text="Add", fg="black", command=self.add_split)
         add.bind("<Return>", self.event_add_split)
-        add.grid(row=0, column=5)
+        add.grid(row=0, column=1)
 
         delete = tk.Button(self.parent, text="Delete", fg="black", command=self.del_split)
         delete.bind("<Return>", self.event_del_split)
-        delete.grid(row=1, column=5)
+        delete.grid(row=1, column=1)
 
         calc = tk.Button(self.parent, text="Calculate Average", fg="black", command=self.calc_avg)
         calc.bind("<Return>", self.event_calc_avg)
-        calc.grid(row=2, column=5)
+        calc.grid(row=2, column=1)
 
     def read_convert(self, file_name):
         list = self.parent.grid_slaves()
@@ -883,6 +941,15 @@ if __name__ == "__main__":
 #DO NOT IMPACT FUNCTIONALITY OF PROGRAM
 #VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 
-#TODO - taskbar icon
-#DONE - when you save a file, the title of the window should update to the name you named the file
-#DONE - Keyboard shortcuts (Ctrl+O OPEN, Ctrl+S SAVE, enter - Calculate Average)
+#TODO - SPLIT MODE
+# * avg_pace, calculating total rest and avg pace gets flipped when number of entries is even
+# * del_avg rework
+# * del_split rework
+# * open_split rework
+# * read_split rework
+# LESSONS LEARNED
+# * Have a design plan going in as you design an application
+#   exactly how you want to or nearly how you want it the first time through
+#   Will reduce a ton on rework and save lots of time
+# * Ask: How can the end user benefit the most from the concept of what this application sets out to do?
+# * Design for the end-user#
