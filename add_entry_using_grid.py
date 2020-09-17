@@ -65,7 +65,6 @@ class Window(tk.Frame):
 
     def add_split(self):
         self.del_avg()
-
         input_choices = ["200m", "400m", "600m", "800m", "1000m", "1200m", "1mi"]
 
         input_option = tk.StringVar(self.parent)
@@ -129,11 +128,9 @@ class Window(tk.Frame):
             self.parent.minsize(width=400, height=200)
 
     def calc_avg(self):
-        list = self.parent.grid_slaves()
         pattern = re.compile(':')
-        for l in list:
-            print(type(l))
-        print("=============")
+        list = self.parent.grid_slaves()
+
         if (type(list[0]) == tk.Label and pattern.search(list[0]["text"]) is not None):
             list[0].destroy()
             list[1].destroy()
@@ -243,29 +240,48 @@ class Window(tk.Frame):
             rest_time = tk.Label(self.parent, text=title)
             rest_time.grid(column=1)
 
+        list = self.parent.grid_slaves()
+        for l in list:
+            print(type(l))
+        print("=============")
         if len(list) > (self.num_buttons + 5):
             self.parent.minsize(width=400, height=self.parent.winfo_height() + 20)
         return title
 
     def read_split(self, file_name):
         list = self.parent.grid_slaves()
-        if (type(list[0]) == tk.Label):
-            list[0].destroy()  # kinda jank, but this runs the first part of the function that checks if the first item
+        self.del_avg()
+        self.calc_avg()
+        entry_cnt = 0
+
         file = open(file_name, "w")  # in the array is a Label. If you don't have the print statement here, the first part of
         file.write("SPLIT MODE\n")
-        for l in reversed(list):  # the function doesn't run
+        for i, l in enumerate(reversed(list)):  # the function doesn't run
             if type(l) == tk.Entry:
-                file.write(l.get())
+                entry_cnt += 1
+                if entry_cnt % 2 == 0:
+                    file.write(l.get())
+                    file.write(" Rest")
+                    file.write("\n")
+                elif entry_cnt % 2 == 1:
+                    file.write(l.get())
+            elif type(l) == tk.OptionMenu:
+                file.write(" ")
+                file.write(l["text"])
                 file.write("\n")
-            elif type(l) == tk.Label:
-                file.write(self.calc_avg())
-                file.write("\n")
+        list = self.parent.grid_slaves()
+        file.write(list[1]["text"])
+        file.write("\n")
+        file.write(list[0]["text"])
+        file.write("\n")
         file.close()
 
     def open_split(self, file_title, file, name):
         f = file.read()
-        newline = f.count('\n')
+        newline = f.count('\n') - 2
         file.close()
+        input_choices = ["200m", "400m", "600m", "800m", "1000m", "1200m", "1mi"]
+        option = ""
 
         new_wind = self.new_window()
         new_wind.parent.title(file_title)
@@ -276,15 +292,45 @@ class Window(tk.Frame):
             split = file.readline()
             split = split[:-1]  # removes the newline character
             pace_str = re.compile("Average Pace")
-            result = pace_str.search(split)
-            if result is None:
+            #result = pace_str.search(split)
+            if n % 2 == 0 and split[-1] == "m" and split[-5] == "1":
                 new_wind.add_split()
                 list = new_wind.parent.grid_slaves()
-                list[0].insert("insert", split)
+                list[1].insert("insert", split[:-6])
+                option = split[-5:-1] + "m"
+                print(option, "\n")
+                for k, dist in enumerate(input_choices):
+                    if dist == option:
+                        list[0].children["menu"].invoke(k)
+
+            elif n % 2 == 0 and split[-1] == "m":
+                new_wind.add_split()
+                list = new_wind.parent.grid_slaves()
+                list[1].insert("insert", split[:-5])
+                option = split[-4:-1] + "m"
+                print(option, "\n")
+
+                for k, dist in enumerate(input_choices):
+                    if dist == option:
+                        list[0].children["menu"].invoke(k)
+            elif n % 2 == 0 and split[-1] == "i":
+                new_wind.add_split()
+                list = new_wind.parent.grid_slaves()
+                list[1].insert("insert", split[:-4])
+                option = split[-3:-1] + "i"
+                print(option, "\n")
+                for k, dist in enumerate(input_choices):
+                    if dist == option:
+                        list[0].children["menu"].invoke(k)
+            elif n % 2 == 1:
+                new_wind.add_split()
+                list = new_wind.parent.grid_slaves()
+                list[1].insert("insert", split[:-5])
             else:
                 avg_pace = tk.Label(new_wind.parent, text=split)
                 avg_pace.grid()
         file.close()
+        new_wind.calc_avg()
 
     def mode_split(self):
         self.del_all()
@@ -944,8 +990,10 @@ if __name__ == "__main__":
 
 #TODO - SPLIT MODE
 # * avg_pace, calculating total rest and avg pace gets flipped when number of entries is even
-# * open_split rework
-# * read_split rework
+#   * this might warrant a separate function:
+#       * math to do a weighted average of entries. get in consistent interval lengths to calculate pace easier
+# * open_split rework. Last remaining item: ignore appended s, if present
+# * read_split rework. Last remaining item: append "s" to entry if there's no ":" in l.get()? Necessary?
 # LESSONS LEARNED
 # * Have a design plan going in as you design an application
 #   exactly how you want to or nearly how you want it the first time through
