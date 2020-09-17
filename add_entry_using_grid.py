@@ -8,7 +8,7 @@ class Window(tk.Frame):
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
         self.parent = parent
-        self.max_entries = 30
+        self.max_entries = 80
         self.num_buttons = 3
         self.selected_mode = tk.IntVar(self.parent)
         self.selected_mode.set(0)
@@ -61,6 +61,7 @@ class Window(tk.Frame):
             result = pattern.search(list[0]["text"])
             if result is not None:
                 list[0].destroy()
+                list[1].destroy()
 
     def add_split(self):
         self.del_avg()
@@ -86,21 +87,22 @@ class Window(tk.Frame):
             split.grid(row=self.num_buttons+entry_cnt, column=0, columnspan=2)
             entry.grid(row=self.num_buttons+entry_cnt, column=1)
             input_menu.grid(row=self.num_buttons+entry_cnt, column=2)
-        elif entry_cnt % 2 == 1:
+        elif (len(list) < self.max_entries + self.num_buttons) and entry_cnt % 2 == 1:
             entry.grid(row=self.num_buttons+entry_cnt, column=1)
             rest.grid(row=self.num_buttons+entry_cnt, column=0, columnspan=2)
-        else:
+        elif (len(list) < self.max_entries + self.num_buttons) and entry_cnt % 2 == 0:
             split.grid(row=self.num_buttons + entry_cnt, column=0, columnspan=2)
             entry.grid(row=self.num_buttons+entry_cnt, column=1)
             input_menu.grid(row=self.num_buttons+entry_cnt, column=2)
 
-        if (len(list) > (self.num_buttons + 5)) and len(list) < self.max_entries + self.num_buttons:
-            self.parent.minsize(width=400, height=200 + (20 * (entry_cnt+self.num_buttons)))
+        if (len(list) > (self.num_buttons + 5)): # and len(list) < self.max_entries + self.num_buttons:
+            self.parent.minsize(width=400, height=200 + (21 * (entry_cnt+self.num_buttons)))
             self.parent.maxsize(width=400, height=1000)
         list = self.parent.grid_slaves()
         for l in list:
             if type(l) != tk.Button:
                 print(type(l))
+        print("list_len: ", len(list))
         print("============")
     def del_split(self):
         self.del_avg()
@@ -110,7 +112,9 @@ class Window(tk.Frame):
             if type(l) == tk.Entry:
                 entry_cnt += 1
         if (len(list) > self.num_buttons):
-            if entry_cnt % 2 == 0:
+            if entry_cnt == 0:
+                pass
+            elif entry_cnt % 2 == 0:
                 list[0].destroy()
                 list[1].destroy()
             elif entry_cnt % 2 == 1:
@@ -119,8 +123,8 @@ class Window(tk.Frame):
                 list[2].destroy()
 
         # calc_avg()
-        if len(list) > (self.num_buttons + 5):
-            self.parent.minsize(width=400, height=200 + (20 * (entry_cnt - 7)))
+        if len(list) > (self.num_buttons):
+            self.parent.minsize(width=400, height=200 + (21 * (entry_cnt + 2)))
         else:
             self.parent.minsize(width=400, height=200)
 
@@ -938,13 +942,8 @@ if __name__ == "__main__":
 
 #TODO - HIGH TO LOW PRIORITY
 
-#DO NOT IMPACT FUNCTIONALITY OF PROGRAM
-#VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-
 #TODO - SPLIT MODE
 # * avg_pace, calculating total rest and avg pace gets flipped when number of entries is even
-# * del_avg rework
-# * del_split rework
 # * open_split rework
 # * read_split rework
 # LESSONS LEARNED
@@ -952,4 +951,4 @@ if __name__ == "__main__":
 #   exactly how you want to or nearly how you want it the first time through
 #   Will reduce a ton on rework and save lots of time
 # * Ask: How can the end user benefit the most from the concept of what this application sets out to do?
-# * Design for the end-user#
+# * Design for the end-user #
