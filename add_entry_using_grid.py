@@ -143,12 +143,13 @@ class Window(tk.Frame):
         rest_sec = 0.0
         entry_cnt = 0
 
-        for l in list:
+        for l in reversed(list):
             if type(l) == tk.Entry:
                 entry_cnt += 1
                 pattern = re.compile(':')
                 result = pattern.search(l.get())
                 # print(result)
+                print(l.get(), "entry_cnt: ", entry_cnt)
                 if result is None:
                     try:
                         if entry_cnt % 2 == 1:
@@ -189,7 +190,7 @@ class Window(tk.Frame):
                             rest_sec += float(l.get())  # indices result.span()[0] + 1 to l.get()[-1] (last index) are SECONDS indices
                         # print(result.span()[0]) #returns position of ':'
         split_cnt = 0
-        rest_cnt = 0
+
         if entry_cnt < 3:
             split_cnt = 1
         elif entry_cnt % 2 == 0:
@@ -989,7 +990,6 @@ if __name__ == "__main__":
 #TODO - HIGH TO LOW PRIORITY
 
 #TODO - SPLIT MODE
-# * avg_pace, calculating total rest and avg pace gets flipped when number of entries is even
 #   * this might warrant a separate function:
 #       * math to do a weighted average of entries. get in consistent interval lengths to calculate pace easier
 # * open_split rework. Last remaining item: ignore appended s, if present
