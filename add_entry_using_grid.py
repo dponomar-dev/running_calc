@@ -128,6 +128,7 @@ class Window(tk.Frame):
             self.parent.minsize(width=400, height=200)
 
     def calc_avg(self):
+        input_choices = ["200", "400", "600", "800", "1000", "1200", "1"]
         pattern = re.compile(':')
         list = self.parent.grid_slaves()
 
@@ -143,7 +144,7 @@ class Window(tk.Frame):
         rest_sec = 0.0
         entry_cnt = 0
 
-        for l in reversed(list):
+        for i, l in enumerate(reversed(list)):
             if type(l) == tk.Entry:
                 entry_cnt += 1
                 pattern = re.compile(':')
@@ -153,7 +154,18 @@ class Window(tk.Frame):
                 if result is None:
                     try:
                         if entry_cnt % 2 == 1:
-                            avg_sec += float(l.get())
+                            dist = (list)[-(i + 2)]["text"]
+                            #print(dist)
+                            #print("i: ", i)
+
+                            for k in input_choices:
+                                if k + "m" == dist:
+                                    print(k)
+                                    dist = int(k)
+                                elif k + "mi" == dist:
+                                    dist = 1609
+
+                            avg_sec += float(l.get()) * 200 / dist
                         elif entry_cnt % 2 == 0:
                             rest_sec += float(l.get())
                     except:
@@ -176,8 +188,19 @@ class Window(tk.Frame):
                         sec = float(sec)
 
                         if entry_cnt % 2 == 1:
-                            avg_min += min  # indices 0 to result.span()[0] (exclusive) are MINUTES indices
-                            avg_sec += sec
+                            dist = (list)[-(i + 2)]["text"]
+                            #print(dist)
+                            #print("i: ", i)
+
+                            for k in input_choices:
+                                if k + "m" == dist:
+                                    print(k)
+                                    dist = int(k)
+                                elif k + "mi" == dist:
+                                    dist = 1609
+
+                            avg_sec += sec * 200 / dist
+                            avg_min += min * 200 / dist
                         elif entry_cnt % 2 == 0:
                             rest_min += min
                             rest_sec += sec
@@ -200,6 +223,8 @@ class Window(tk.Frame):
 
         if (avg_min > 1):
             avg_min = int(avg_min / split_cnt)
+        elif avg_min <= 1:
+            avg_sec += avg_min * 60
         # if rest_min > 1:
         #     rest_min = int(rest_min / split_cnt)
 
@@ -223,12 +248,12 @@ class Window(tk.Frame):
 
 
         if avg_min == "0":
-            title = "Average Pace: " + avg_sec
+            title = "Pace per 200m: " + avg_sec
             avg_pace = tk.Label(self.parent, text=title)
             avg_pace.grid(column=1)
         else:
             avg_min = avg_min + ":" + avg_sec
-            title = "Average Pace: " + avg_min
+            title = "Pace per 200m: " + avg_min
             avg_pace = tk.Label(self.parent, text=title)
             avg_pace.grid(column=1)
         if rest_min == "0":
@@ -237,7 +262,7 @@ class Window(tk.Frame):
             rest_time.grid(column=1)
         else:
             rest_min = rest_min + ":" + rest_sec
-            title = "Total Pace: " + rest_min
+            title = "Total Rest: " + rest_min
             rest_time = tk.Label(self.parent, text=title)
             rest_time.grid(column=1)
 
@@ -992,6 +1017,7 @@ if __name__ == "__main__":
 #TODO - SPLIT MODE
 #   * this might warrant a separate function:
 #       * math to do a weighted average of entries. get in consistent interval lengths to calculate pace easier
+#       * configurable per dist? ie dropdown to configure avg pace per 200m, 400m, 800m, etc
 # * open_split rework. Last remaining item: ignore appended s, if present
 # * read_split rework. Last remaining item: append "s" to entry if there's no ":" in l.get()? Necessary?
 # LESSONS LEARNED
