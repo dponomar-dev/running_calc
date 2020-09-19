@@ -54,6 +54,8 @@ class Window(tk.Frame):
 
     def del_avg(self):
         list = self.parent.grid_slaves()
+        for l in list:
+            print("del_avg: ", type(l))
 
         #if label is the 0th and contains :
         if (type(list[0]) == tk.Label):
@@ -62,6 +64,7 @@ class Window(tk.Frame):
             if result is not None:
                 list[0].destroy()
                 list[1].destroy()
+                list[2].destroy()
 
     def add_split(self):
         self.del_avg()
@@ -129,12 +132,16 @@ class Window(tk.Frame):
 
     def calc_avg(self):
         input_choices = ["200", "400", "600", "800", "1000", "1200", "1"]
+        option_choices = ["200m", "400m", "800m", "1000m", "1mi"]
+        option_choices_num = [200, 400, 800, 1000, 1609]
+
         pattern = re.compile(':')
         list = self.parent.grid_slaves()
 
         if (type(list[0]) == tk.Label and pattern.search(list[0]["text"]) is not None):
             list[0].destroy()
             list[1].destroy()
+            list[2].destroy()
             if len(list) > (self.num_buttons + 5):
                 self.parent.minsize(width=400, height=self.parent.winfo_height() - 20)
             return 0
@@ -165,7 +172,7 @@ class Window(tk.Frame):
                                 elif k + "mi" == dist:
                                     dist = 1609
 
-                            avg_sec += float(l.get()) * 200 / dist
+                            avg_sec += float(l.get()) * 1609 / dist
                         elif entry_cnt % 2 == 0:
                             rest_sec += float(l.get())
                     except:
@@ -199,8 +206,8 @@ class Window(tk.Frame):
                                 elif k + "mi" == dist:
                                     dist = 1609
 
-                            avg_sec += sec * 200 / dist
-                            avg_min += min * 200 / dist
+                            avg_sec += sec * 1609 / dist
+                            avg_min += min * 1609 / dist
                         elif entry_cnt % 2 == 0:
                             rest_min += min
                             rest_sec += sec
@@ -237,7 +244,16 @@ class Window(tk.Frame):
         rest_sec %= 60
         rest_sec = round(rest_sec, 2)
 
-        if avg_sec < 10:
+        if avg_sec >= 10 and avg_min == "0":
+            avg_min = str(int(avg_sec / 60))
+            avg_sec %= 60
+            avg_sec = round(avg_sec, 2)
+
+            if avg_sec < 10:
+                avg_sec = "0" + str(avg_sec)
+            else:
+                avg_sec = str(avg_sec)
+        elif avg_sec < 10:
             avg_sec = "0" + str(avg_sec)
         else:
             avg_sec = str(avg_sec)
@@ -246,17 +262,79 @@ class Window(tk.Frame):
         else:
             rest_sec = str(rest_sec)
 
+        output_option = tk.StringVar(self.parent)
+        output_option.set("1mi")
+
+        output_menu = tk.OptionMenu(self.parent, output_option, *option_choices)  # asterisk makes the choices vertical instead of horizontal
+        output_menu.grid(column=2)
+
+        def change_distance_dropdown(*args):
+            list = self.parent.grid_slaves()
+            prev_rest_time = list[0]["text"]
+            list[0].destroy()
+            list[1].destroy()
+
+            for k, dist in enumerate(option_choices):
+                if output_option.get() == dist:
+                    selected_dist = option_choices_num[k]
+            print("Selected dist: ", selected_dist)
+            try:
+                new_avg_sec = int(avg_min) * 60 + float(avg_sec) * selected_dist / 1609
+                new_avg_min = str(int(new_avg_sec / 60))
+                new_avg_sec %= 60
+                new_avg_sec = round(new_avg_sec, 2)  # truncates to two decimal places
+            except (ValueError):
+                pattern = re.compile(':')
+                result = pattern.search(avg_min)
+                new_avg_min = ""
+                new_avg_sec = ""
+                for j in range(result.span()[0]):
+                    new_avg_min += avg_min[j]
+                for j in range(len(avg_min)):
+                    if j > result.span()[0]:  # position of semicolon
+                        new_avg_sec += avg_min[j]
+                print("Exception part: ", "avg_min: ", new_avg_min, "avg_sec: ", new_avg_sec)
+                print("Selected_dist:", selected_dist)
+                new_avg_sec = (int(new_avg_min) * 60 + float(new_avg_sec)) * int(selected_dist) / 1609
+                print("new_avg_secccccccccc: ", new_avg_sec)
+                new_avg_min = str(int(new_avg_sec / 60))
+                new_avg_sec %= 60
+                new_avg_sec = round(new_avg_sec, 2)
+
+                print("new_Avg_sec: ", new_avg_sec, "new_avg_min: ", new_avg_min)
+
+            if float(new_avg_sec) < 10:
+                new_avg_sec = "0" + str(new_avg_sec)
+            else:
+                new_avg_sec = str(new_avg_sec)
+
+            if new_avg_min == "0":
+                title = "Pace per " + output_option.get() + ": " + new_avg_sec
+                avg_pace = tk.Label(self.parent, text=title)
+                avg_pace.grid(column=1)
+            else:
+                new_avg_min = new_avg_min + ":" + new_avg_sec
+                title = "Pace per " + output_option.get() + ": " + new_avg_min
+                avg_pace = tk.Label(self.parent, text=title)
+                avg_pace.grid(column=1)
+
+
+            rest_time = tk.Label(self.parent, text=prev_rest_time)
+            rest_time.grid(column=1)
+
+        output_option.trace("w", change_distance_dropdown)
 
         if avg_min == "0":
-            title = "Pace per 200m: " + avg_sec
+            title = "Pace per " + output_option.get() + ": " + avg_sec
             avg_pace = tk.Label(self.parent, text=title)
             avg_pace.grid(column=1)
         else:
             avg_min = avg_min + ":" + avg_sec
-            title = "Pace per 200m: " + avg_min
+            title = "Pace per " + output_option.get() + ": " + avg_min
             avg_pace = tk.Label(self.parent, text=title)
             avg_pace.grid(column=1)
         if rest_min == "0":
+            rest_min = "0"
             title = "Total Rest: " + rest_sec
             rest_time = tk.Label(self.parent, text=title)
             rest_time.grid(column=1)
@@ -279,6 +357,8 @@ class Window(tk.Frame):
         self.del_avg()
         self.calc_avg()
         entry_cnt = 0
+        pattern = re.compile(':')
+
 
         file = open(file_name, "w")  # in the array is a Label. If you don't have the print statement here, the first part of
         file.write("SPLIT MODE\n")
@@ -286,11 +366,29 @@ class Window(tk.Frame):
             if type(l) == tk.Entry:
                 entry_cnt += 1
                 if entry_cnt % 2 == 0:
-                    file.write(l.get())
+                    result = pattern.search(l.get())
+                    if result is None:
+                        if float(l.get()) < 10:
+                            str_to_write = "0:0" + l.get()
+                            file.write(str_to_write)
+                        else:
+                            str_to_write = "0:" + l.get()
+                            file.write(str_to_write)
+                    else:
+                        file.write(l.get())
                     file.write(" Rest")
                     file.write("\n")
                 elif entry_cnt % 2 == 1:
-                    file.write(l.get())
+                    result = pattern.search(l.get())
+                    if result is None:
+                        if float(l.get()) < 10:
+                            str_to_write = "0:0" + l.get()
+                            file.write(str_to_write)
+                        else:
+                            str_to_write = "0:" + l.get()
+                            file.write(str_to_write)
+                    else:
+                        file.write(l.get())
             elif type(l) == tk.OptionMenu:
                 file.write(" ")
                 file.write(l["text"])
@@ -1015,11 +1113,7 @@ if __name__ == "__main__":
 #TODO - HIGH TO LOW PRIORITY
 
 #TODO - SPLIT MODE
-#   * this might warrant a separate function:
-#       * math to do a weighted average of entries. get in consistent interval lengths to calculate pace easier
 #       * configurable per dist? ie dropdown to configure avg pace per 200m, 400m, 800m, etc
-# * open_split rework. Last remaining item: ignore appended s, if present
-# * read_split rework. Last remaining item: append "s" to entry if there's no ":" in l.get()? Necessary?
 # LESSONS LEARNED
 # * Have a design plan going in as you design an application
 #   exactly how you want to or nearly how you want it the first time through
