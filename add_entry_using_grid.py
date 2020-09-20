@@ -74,6 +74,11 @@ class Window(tk.Frame):
         input_option.set("200m")
         input_menu = tk.OptionMenu(self.parent, input_option, *input_choices)
 
+        def change_distance_dropdown(*args):
+            self.calc_avg()
+            self.calc_avg()
+        input_option.trace("w", change_distance_dropdown)
+
         rest = tk.Label(self.parent, text="Rest")
         split = tk.Label(self.parent, text="Split")
         entry = tk.Entry(self.parent)
@@ -228,16 +233,21 @@ class Window(tk.Frame):
         elif entry_cnt % 2 == 1:
             split_cnt = int(entry_cnt / 2) + 1
 
-        if (avg_min > 1):
-            avg_min = int(avg_min / split_cnt)
-        elif avg_min <= 1:
-            avg_sec += avg_min * 60
+        # if avg_min > 1:
+        avg_sec += avg_min * 60
+            #avg_min = int(avg_min / split_cnt)
+        # elif avg_min <= 1:
+        #     avg_sec += avg_min * 60
         # if rest_min > 1:
         #     rest_min = int(rest_min / split_cnt)
-
-        avg_min = str(int(avg_min / split_cnt))
+        print("Avg_sec:", avg_sec, "Split_cnt", split_cnt)
+        #avg_sec += avg_sec + avg_min * 60
+        print("avg_min: ", avg_min)
         print("Avg_sec:", avg_sec, "Split_cnt", split_cnt)
         avg_sec /= split_cnt
+        avg_min = avg_sec / 60
+        avg_min = str(int(avg_min))
+        avg_sec %= 60
         avg_sec = round(avg_sec, 2)  # truncates to two decimal places
 
         rest_min = str(int(rest_min + rest_sec / 60))
@@ -351,7 +361,7 @@ class Window(tk.Frame):
         if len(list) > (self.num_buttons + 5):
             self.parent.minsize(width=400, height=self.parent.winfo_height() + 20)
         return title
-
+    
     def read_split(self, file_name):
         list = self.parent.grid_slaves()
         self.del_avg()
