@@ -5,7 +5,7 @@ Record splits from a workout!
 
 ![split_mode_ex](https://user-images.githubusercontent.com/70822175/93719149-5b85cf80-fb46-11ea-99cf-80f994923e2b.png)
 ## Convert Mode
-Convert odd distances from your running watch into more common distances
+Convert odd distances from your running watch into more common distances!
 
 ![convert_mode_ex](https://user-images.githubusercontent.com/70822175/93719152-5b85cf80-fb46-11ea-9660-b64c13ee8cc9.png)
 ## Pace Mode
