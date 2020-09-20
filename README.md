@@ -13,3 +13,6 @@ Plan out the splits you need to hit for your next race or workout!
 
 ![pace_mode_ex](https://user-images.githubusercontent.com/70822175/93719752-31cea780-fb4a-11ea-9938-eb0cb2ad0ad2.png)
 
+## Installation
+1) Download add_entry_using_grid.py and run from a python interpreter
+2) Run!
