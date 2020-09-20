@@ -3,6 +3,8 @@ from tkinter import filedialog as fd
 from tkinter import messagebox as mb
 import os
 import re
+import webbrowser
+
 
 class Window(tk.Frame):
     def __init__(self, parent):
@@ -28,7 +30,7 @@ class Window(tk.Frame):
         filemenu.add_command(label="Open" + "               Ctrl+O", command=self.open_window)
         filemenu.add_command(label="Save As" + "            Ctrl+S", command=self.save_as)
         filemenu.add_separator()
-        filemenu.add_command(label="Exit", command=self.quit)
+        filemenu.add_command(label="Exit", command=self.cust_quit)
 
         optionsmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Modes", menu=optionsmenu)
@@ -38,13 +40,16 @@ class Window(tk.Frame):
 
         aboutmenu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="About", menu=aboutmenu)
-        # aboutmenu.add_command(label="About the Creator",)
+        aboutmenu.add_command(label="Github", command=self.link_to_github)
         self.parent.config(menu=menubar)
         optionsmenu.invoke(self.selected_mode.get())
 
         self.bind_all("<Control-n>", self.event_new_window)
         self.bind_all("<Control-o>", self.event_open_window)
         self.bind_all("<Control-s>", self.event_save_as)
+
+    def link_to_github(self):
+        webbrowser.open("https://github.com/dponomar-dev/running_calc/")
 
     def del_all(self):
         list = self.parent.grid_slaves()
@@ -67,6 +72,16 @@ class Window(tk.Frame):
                 list[2].destroy()
 
     def add_split(self):
+        list = self.parent.grid_slaves()
+
+
+        # for l in list:
+        #     print("add_slpit: ", type(l))
+        # try:
+        #     print("report_dist: ", report_dist_optionmenu.get())
+        # except:
+        #     pass
+
         self.del_avg()
         input_choices = ["200m", "400m", "600m", "800m", "1000m", "1200m", "1mi"]
 
@@ -75,8 +90,23 @@ class Window(tk.Frame):
         input_menu = tk.OptionMenu(self.parent, input_option, *input_choices)
 
         def change_distance_dropdown(*args):
+
             self.calc_avg()
             self.calc_avg()
+            list = self.parent.grid_slaves()
+
+            #print("report_dist", report_dist_optionmenu["text"])
+            if len(list) > (self.num_buttons + 5):
+                self.parent.minsize(width=400, height=self.parent.winfo_height())
+                self.parent.maxsize(width=400, height=self.parent.winfo_height())
+
+            # for k, dist in enumerate(input_choices):
+            #     try:
+            #         if dist == report_dist_optionmenu["text"]:
+            #            list[2]["menu"].invoke(k)
+            #     except:
+            #         pass
+
         input_option.trace("w", change_distance_dropdown)
 
         rest = tk.Label(self.parent, text="Rest")
@@ -102,15 +132,10 @@ class Window(tk.Frame):
             entry.grid(row=self.num_buttons+entry_cnt, column=1)
             input_menu.grid(row=self.num_buttons+entry_cnt, column=2)
 
-        if (len(list) > (self.num_buttons + 5)): # and len(list) < self.max_entries + self.num_buttons:
+        if len(list) > (self.num_buttons + 4):
             self.parent.minsize(width=400, height=200 + (21 * (entry_cnt+self.num_buttons)))
-            self.parent.maxsize(width=400, height=1000)
-        list = self.parent.grid_slaves()
-        for l in list:
-            if type(l) != tk.Button:
-                print(type(l))
-        print("list_len: ", len(list))
-        print("============")
+            self.parent.maxsize(width=400, height=200 + (21 * (entry_cnt+self.num_buttons)))
+
     def del_split(self):
         self.del_avg()
         list = self.parent.grid_slaves()
@@ -118,7 +143,7 @@ class Window(tk.Frame):
         for l in list:
             if type(l) == tk.Entry:
                 entry_cnt += 1
-        if (len(list) > self.num_buttons):
+        if len(list) > self.num_buttons:
             if entry_cnt == 0:
                 pass
             elif entry_cnt % 2 == 0:
@@ -129,8 +154,7 @@ class Window(tk.Frame):
                 list[1].destroy()
                 list[2].destroy()
 
-        # calc_avg()
-        if len(list) > (self.num_buttons):
+        if len(list) > (self.num_buttons + 4):
             self.parent.minsize(width=400, height=200 + (21 * (entry_cnt + 2)))
         else:
             self.parent.minsize(width=400, height=200)
@@ -139,16 +163,16 @@ class Window(tk.Frame):
         input_choices = ["200", "400", "600", "800", "1000", "1200", "1"]
         option_choices = ["200m", "400m", "800m", "1000m", "1mi"]
         option_choices_num = [200, 400, 800, 1000, 1609]
-
         pattern = re.compile(':')
         list = self.parent.grid_slaves()
 
-        if (type(list[0]) == tk.Label and pattern.search(list[0]["text"]) is not None):
+        if type(list[0]) == tk.Label and pattern.search(list[0]["text"]) is not None:
             list[0].destroy()
             list[1].destroy()
             list[2].destroy()
             if len(list) > (self.num_buttons + 5):
-                self.parent.minsize(width=400, height=self.parent.winfo_height() - 20)
+                self.parent.minsize(width=400, height=self.parent.winfo_height() - 50)
+                self.parent.maxsize(width=400, height=self.parent.winfo_height() - 50)
             return 0
         avg_sec = 0.0
         avg_min = 0
@@ -167,9 +191,6 @@ class Window(tk.Frame):
                     try:
                         if entry_cnt % 2 == 1:
                             dist = (list)[-(i + 2)]["text"]
-                            #print(dist)
-                            #print("i: ", i)
-
                             for k in input_choices:
                                 if k + "m" == dist:
                                     print(k)
@@ -201,9 +222,6 @@ class Window(tk.Frame):
 
                         if entry_cnt % 2 == 1:
                             dist = (list)[-(i + 2)]["text"]
-                            #print(dist)
-                            #print("i: ", i)
-
                             for k in input_choices:
                                 if k + "m" == dist:
                                     print(k)
@@ -222,10 +240,8 @@ class Window(tk.Frame):
                         if entry_cnt % 2 == 1:
                             avg_sec += float(l.get())
                         elif entry_cnt % 2 == 0:
-                            rest_sec += float(l.get())  # indices result.span()[0] + 1 to l.get()[-1] (last index) are SECONDS indices
-                        # print(result.span()[0]) #returns position of ':'
+                            rest_sec += float(l.get())
         split_cnt = 0
-
         if entry_cnt < 3:
             split_cnt = 1
         elif entry_cnt % 2 == 0:
@@ -233,26 +249,12 @@ class Window(tk.Frame):
         elif entry_cnt % 2 == 1:
             split_cnt = int(entry_cnt / 2) + 1
 
-        # if avg_min > 1:
         avg_sec += avg_min * 60
-            #avg_min = int(avg_min / split_cnt)
-        # elif avg_min <= 1:
-        #     avg_sec += avg_min * 60
-        # if rest_min > 1:
-        #     rest_min = int(rest_min / split_cnt)
-        print("Avg_sec:", avg_sec, "Split_cnt", split_cnt)
-        #avg_sec += avg_sec + avg_min * 60
-        print("avg_min: ", avg_min)
-        print("Avg_sec:", avg_sec, "Split_cnt", split_cnt)
         avg_sec /= split_cnt
         avg_min = avg_sec / 60
         avg_min = str(int(avg_min))
         avg_sec %= 60
-        avg_sec = round(avg_sec, 2)  # truncates to two decimal places
-
-        rest_min = str(int(rest_min + rest_sec / 60))
-        rest_sec %= 60
-        rest_sec = round(rest_sec, 2)
+        avg_sec = round(avg_sec, 2)
 
         if avg_sec >= 10 and avg_min == "0":
             avg_min = str(int(avg_sec / 60))
@@ -267,6 +269,11 @@ class Window(tk.Frame):
             avg_sec = "0" + str(avg_sec)
         else:
             avg_sec = str(avg_sec)
+
+        rest_min = str(int(rest_min + rest_sec / 60))
+        rest_sec %= 60
+        rest_sec = round(rest_sec, 2)
+
         if rest_sec < 10:
             rest_sec = "0" + str(rest_sec)
         else:
@@ -274,8 +281,7 @@ class Window(tk.Frame):
 
         output_option = tk.StringVar(self.parent)
         output_option.set("1mi")
-
-        output_menu = tk.OptionMenu(self.parent, output_option, *option_choices)  # asterisk makes the choices vertical instead of horizontal
+        output_menu = tk.OptionMenu(self.parent, output_option, *option_choices)
         output_menu.grid(column=2)
 
         def change_distance_dropdown(*args):
@@ -303,21 +309,20 @@ class Window(tk.Frame):
                 for j in range(len(avg_min)):
                     if j > result.span()[0]:  # position of semicolon
                         new_avg_sec += avg_min[j]
-                print("Exception part: ", "avg_min: ", new_avg_min, "avg_sec: ", new_avg_sec)
-                print("Selected_dist:", selected_dist)
+                # print("Exception part: ", "avg_min: ", new_avg_min, "avg_sec: ", new_avg_sec)
+                # print("Selected_dist:", selected_dist)
                 new_avg_sec = (int(new_avg_min) * 60 + float(new_avg_sec)) * int(selected_dist) / 1609
-                print("new_avg_secccccccccc: ", new_avg_sec)
+                #print("new_avg_secccccccccc: ", new_avg_sec)
                 new_avg_min = str(int(new_avg_sec / 60))
                 new_avg_sec %= 60
                 new_avg_sec = round(new_avg_sec, 2)
 
-                print("new_Avg_sec: ", new_avg_sec, "new_avg_min: ", new_avg_min)
+                #print("new_Avg_sec: ", new_avg_sec, "new_avg_min: ", new_avg_min)
 
             if float(new_avg_sec) < 10:
                 new_avg_sec = "0" + str(new_avg_sec)
             else:
                 new_avg_sec = str(new_avg_sec)
-
             if new_avg_min == "0":
                 title = "Pace per " + output_option.get() + ": " + new_avg_sec
                 avg_pace = tk.Label(self.parent, text=title)
@@ -327,8 +332,6 @@ class Window(tk.Frame):
                 title = "Pace per " + output_option.get() + ": " + new_avg_min
                 avg_pace = tk.Label(self.parent, text=title)
                 avg_pace.grid(column=1)
-
-
             rest_time = tk.Label(self.parent, text=prev_rest_time)
             rest_time.grid(column=1)
 
@@ -354,25 +357,32 @@ class Window(tk.Frame):
             rest_time = tk.Label(self.parent, text=title)
             rest_time.grid(column=1)
 
-        list = self.parent.grid_slaves()
-        for l in list:
-            print(type(l))
-        print("=============")
-        if len(list) > (self.num_buttons + 5):
-            self.parent.minsize(width=400, height=self.parent.winfo_height() + 20)
+        # list = self.parent.grid_slaves()
+        # for l in list:
+        #     print(type(l))
+        # print("=============")
+        if len(list) > (self.num_buttons + 4):
+            self.parent.minsize(width=400, height=self.parent.winfo_height() + 50)
+            self.parent.maxsize(width=400, height=self.parent.winfo_height() + 50)
         return title
-    
+
     def read_split(self, file_name):
-        list = self.parent.grid_slaves()
         self.del_avg()
         self.calc_avg()
+
+        list = self.parent.grid_slaves()
+        if len(list) > (self.num_buttons + 5):
+            self.parent.minsize(width=400, height=self.parent.winfo_height())
+            self.parent.maxsize(width=400, height=self.parent.winfo_height())
         entry_cnt = 0
         pattern = re.compile(':')
 
+        for l in list:
+            print("read split", type(l))
 
-        file = open(file_name, "w")  # in the array is a Label. If you don't have the print statement here, the first part of
+        file = open(file_name, "w")
         file.write("SPLIT MODE\n")
-        for i, l in enumerate(reversed(list)):  # the function doesn't run
+        for i, l in enumerate(reversed(list)):
             if type(l) == tk.Entry:
                 entry_cnt += 1
                 if entry_cnt % 2 == 0:
@@ -399,7 +409,7 @@ class Window(tk.Frame):
                             file.write(str_to_write)
                     else:
                         file.write(l.get())
-            elif type(l) == tk.OptionMenu:
+            elif type(l) == tk.OptionMenu and i != len(list) - 3:
                 file.write(" ")
                 file.write(l["text"])
                 file.write("\n")
@@ -497,7 +507,7 @@ class Window(tk.Frame):
             if type(l) == tk.Entry:
                 entry_list += [i]
                 #print(list[1].get())
-                print(entry_list)
+                #print(entry_list)
 
         file.write("CONVERT MODE\n")
         output_mins = ""
@@ -674,7 +684,6 @@ class Window(tk.Frame):
                         calc_secs = calc_secs % 60
                         calc_secs = round(calc_secs, 2)
 
-
                         output_minutes.insert("insert", calc_mins)
                         output_seconds.insert("insert", calc_secs)
                     elif output_unit == "200m":
@@ -849,7 +858,6 @@ class Window(tk.Frame):
         input_option.set("200m")
         report_option = tk.StringVar(self.parent)
         report_option.set("200m")
-
         self.init_dropdown(self, "200m", input_option, "200m", report_option, input_choices, report_choices)
 
         input_seconds = tk.Entry(self.parent, width=10)
@@ -1062,7 +1070,7 @@ class Window(tk.Frame):
         files = [('Text Document', '*.txt'),
                  ('All Files', '*.*')]
         saveas = fd.asksaveasfile(filetypes=files, defaultextension=files)
-        print(saveas.name)
+        #print(saveas.name)
         list = self.parent.grid_slaves()
         primary_title = " - Running Calculator"
         file_title = os.path.basename(saveas.name)
@@ -1077,7 +1085,7 @@ class Window(tk.Frame):
         elif current_mode == 2:
             self.read_pace(saveas.name)
 
-    def quit(self):
+    def cust_quit(self):
         if mb.askyesno(title="Quit", message="Really quit?"):
             self.parent.destroy()
 
