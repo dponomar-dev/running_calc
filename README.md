@@ -11,5 +11,5 @@ Convert odd distances from your running watch into more common distances
 ## Pace Mode
 Plan out the splits you need to hit for your next race or workout!
 
-![pace_mode_ex](https://user-images.githubusercontent.com/70822175/93719153-5c1e6600-fb46-11ea-9ac5-43ab5d7dce75.png)
+![pace_mode_ex](https://user-images.githubusercontent.com/70822175/93719752-31cea780-fb4a-11ea-9938-eb0cb2ad0ad2.png)
 
