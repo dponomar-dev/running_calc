@@ -59,8 +59,8 @@ class Window(tk.Frame):
 
     def del_avg(self):
         list = self.parent.grid_slaves()
-        for l in list:
-            print("del_avg: ", type(l))
+        # for l in list:
+        #     print("del_avg: ", type(l))
 
         #if label is the 0th and contains :
         if (type(list[0]) == tk.Label):
@@ -117,9 +117,9 @@ class Window(tk.Frame):
         for l in list:
             if type(l) == tk.Entry:
                 entry_cnt += 1
-            if type(l) != tk.Button:
-                print(type(l))
-        print("============")
+        #     if type(l) != tk.Button:
+        #         print(type(l))
+        # print("============")
         if (len(list) < self.max_entries + self.num_buttons) and entry_cnt < 1:
             split.grid(row=self.num_buttons+entry_cnt, column=0, columnspan=2)
             entry.grid(row=self.num_buttons+entry_cnt, column=1)
@@ -186,14 +186,14 @@ class Window(tk.Frame):
                 pattern = re.compile(':')
                 result = pattern.search(l.get())
                 # print(result)
-                print(l.get(), "entry_cnt: ", entry_cnt)
+                # print(l.get(), "entry_cnt: ", entry_cnt)
                 if result is None:
                     try:
                         if entry_cnt % 2 == 1:
                             dist = (list)[-(i + 2)]["text"]
                             for k in input_choices:
                                 if k + "m" == dist:
-                                    print(k)
+                                    # print(k)
                                     dist = int(k)
                                 elif k + "mi" == dist:
                                     dist = 1609
@@ -224,7 +224,7 @@ class Window(tk.Frame):
                             dist = (list)[-(i + 2)]["text"]
                             for k in input_choices:
                                 if k + "m" == dist:
-                                    print(k)
+                                    # print(k)
                                     dist = int(k)
                                 elif k + "mi" == dist:
                                     dist = 1609
@@ -293,7 +293,7 @@ class Window(tk.Frame):
             for k, dist in enumerate(option_choices):
                 if output_option.get() == dist:
                     selected_dist = option_choices_num[k]
-            print("Selected dist: ", selected_dist)
+            # print("Selected dist: ", selected_dist)
             try:
                 new_avg_sec = int(avg_min) * 60 + float(avg_sec) * selected_dist / 1609
                 new_avg_min = str(int(new_avg_sec / 60))
@@ -377,8 +377,8 @@ class Window(tk.Frame):
         entry_cnt = 0
         pattern = re.compile(':')
 
-        for l in list:
-            print("read split", type(l))
+        # for l in list:
+        #     print("read split", type(l))
 
         file = open(file_name, "w")
         file.write("SPLIT MODE\n")
@@ -442,7 +442,7 @@ class Window(tk.Frame):
                 list = new_wind.parent.grid_slaves()
                 list[1].insert("insert", split[:-6])
                 option = split[-5:-1] + "m"
-                print(option, "\n")
+                # print(option, "\n")
                 for k, dist in enumerate(input_choices):
                     if dist == option:
                         list[0].children["menu"].invoke(k)
@@ -452,7 +452,7 @@ class Window(tk.Frame):
                 list = new_wind.parent.grid_slaves()
                 list[1].insert("insert", split[:-5])
                 option = split[-4:-1] + "m"
-                print(option, "\n")
+                # print(option, "\n")
 
                 for k, dist in enumerate(input_choices):
                     if dist == option:
@@ -462,7 +462,7 @@ class Window(tk.Frame):
                 list = new_wind.parent.grid_slaves()
                 list[1].insert("insert", split[:-4])
                 option = split[-3:-1] + "i"
-                print(option, "\n")
+                # print(option, "\n")
                 for k, dist in enumerate(input_choices):
                     if dist == option:
                         list[0].children["menu"].invoke(k)
@@ -513,9 +513,9 @@ class Window(tk.Frame):
         output_mins = ""
         output_secs = ""
         for i, l in enumerate(reversed(list)):
-            print(i, type(l))
+            # print(i, type(l))
             if type(l) == tk.Entry:
-                print(i, l.get())
+                # print(i, l.get())
                 if i == 2:
                     file.write(l.get())
                     file.write(" mi in\n")
@@ -594,9 +594,9 @@ class Window(tk.Frame):
         list = new_wind.parent.grid_slaves()
 
         for i, l in enumerate(reversed(list)):
-            print(i, type(l))
+            # print(i, type(l))
             if type(l) == tk.Entry:
-                print(i, l.get())
+                # print(i, l.get())
                 if i == 2:
                     dist = re.findall("\d+\.\d+", input_dist)
                     if len(dist) == 0:
@@ -669,9 +669,9 @@ class Window(tk.Frame):
 
         def convert(*args):
             input_unit = input_option.get()
-            print(input_unit)
+            # print(input_unit)
             output_unit = output_option.get()
-            print(output_unit)
+            # print(output_unit)
 
             try:
                 if input_unit == "mi":
@@ -728,11 +728,11 @@ class Window(tk.Frame):
             if type(l) == tk.Label and i >= 7:
                 result = pattern.search(l["text"])
                 if result is not None:
-                    print(i, l["text"])
+                    # print(i, l["text"])
                     file.write(l["text"])
                     file.write("\n")
-            else:
-                print(i, type(l))
+            # else:
+            #     print(i, type(l))
         file.close()
 
     def open_pace(self, file_title, name):
@@ -742,7 +742,7 @@ class Window(tk.Frame):
         file = open(name, "r")
         f = file.read()
         newline = f.count('\n') - 1
-        print(newline)
+        # print(newline)
         file.close()
 
         new_wind = self.new_window()
@@ -1017,8 +1017,8 @@ class Window(tk.Frame):
                 if report_dist == dist:
                     break
 
-            print("this is i:", i)
-            print("this is j:", j)
+            # print("this is i:", i)
+            # print("this is j:", j)
 
             if i < j:
                 report_option.set(input_choices[i])
@@ -1050,7 +1050,7 @@ class Window(tk.Frame):
 
         files = [('Text Document', '*.txt'), ('All Files', '*.*')]
         name = fd.askopenfilename(title="Open", filetypes=files)
-        print(name)
+        # print(name)
         file = open(name, "r")
         primary_title = " - Running Calculator"
         file_title = os.path.basename(name)
@@ -1059,10 +1059,9 @@ class Window(tk.Frame):
 
         if str(f) == "SPLIT MODE\n":
             self.open_split(file_title, file, name)
-            print("1")
         elif str(f) == "CONVERT MODE\n":
             self.open_convert(file_title, file, name)
-            print("2")
+
         elif str(f) == "PACE MODE\n":
             self.open_pace(file_title, name)
 
